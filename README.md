@@ -4,6 +4,16 @@
 
 Latest Compatible Minecraft Version: 1.12
 
+<sup>Note: It works more similarly to a pre-processor, but has a syntax similar to JavaScript, which is why I called it a Script.<sup>
+
+## TODO
+- Clean up Code (try to refractor and make everything better for 1.0.0)
+- Add For loops (If possible)
+- Change function Calling
+- Separate statements with `{ } ;` (punctuation)
+- Finish Wiki
+-
+
 # Documentation
 Learn how to write in Minecraft Script in the [Wiki](https://github.com/PandawanFr/mcs/wiki)
 
