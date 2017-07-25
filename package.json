@@ -1,17 +1,29 @@
 {
-  "name": "mcs",
-  "version": "1.0.0",
-  "description": "A Minecraft Scripting language which converts to functions",
-  "main": "index.js",
-  "scripts": {
-	  "start": "node index.js"
-  },
-  "keywords": [
-    "Minecraft",
-    "MC",
-    "Script",
-    "JS"
-  ],
-  "author": "Pandawan",
-  "license": "MIT"
+	"name": "mcs",
+	"version": "1.0.0",
+	"description": "A Minecraft Scripting language which converts to functions",
+	"main": "mcs.js",
+	"scripts": {
+		"test": "node index.js ./test/input/file.mcs ./test/output/"
+	},
+	"keywords": [
+		"Minecraft",
+		"MC",
+		"Script",
+		"JS"
+	],
+	"author": "Pandawan",
+	"license": "MIT",
+	"repository": "git+https://github.com/PandawanFr/mcs.git",
+	"bugs": {
+		"url": "https://github.com/PandawanFr/mcs/issues"
+	},
+	"homepage": "https://github.com/PandawanFr/mcs#readme",
+	"dependencies": {
+		"chalk": "^2.0.1",
+		"yargs": "^8.0.2"
+	},
+	"bin": {
+		"mcs": "./index.js"
+	}
 }

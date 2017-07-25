@@ -1,6 +1,6 @@
 function hello {
-	execute hey ~ ~ ~ {
-		execute hii ~ ~ ~ {
+	execute @a ~ ~ ~ {
+		execute @p ~ ~ ~ {
 			var hey = dummy
 			hey @s = 10
 			function(hey)
