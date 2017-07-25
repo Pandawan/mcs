@@ -4,6 +4,8 @@ const fs = require("fs");
 const path = require("path");
 const mcs = require("./mcs");
 const chalk = require('chalk');
+const pkginfo = require('pkginfo')(module);
+
 
 let input = '';
 let outputDir = './';
@@ -20,11 +22,13 @@ if (process.argv[2] == '--help' || process.argv[2] == '-h') {
 		'    Examples:',
 		'        Convert file.mcs in the current directory',
 		'        mcs ./file.mcs'
+		'        Convert file.mcs in the ./output directory',
+		'        mcs ./file.mcs ./output'
 	].join('\n'));
 }
 else if (process.argv[2] == '--version' || process.argv[2] == '-v') {
 	console.log([
-		'mcs v1.0.0'
+		'mcs v' + module.exports.version
 	].join('\n'));
 }
 else {

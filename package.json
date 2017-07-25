@@ -20,7 +20,8 @@
 	},
 	"homepage": "https://github.com/PandawanFr/mcs#readme",
 	"dependencies": {
-		"chalk": "^2.0.1"
+		"chalk": "^2.0.1",
+		"pkginfo": "^0.4.0"
 	},
 	"bin": {
 		"mcs": "./index.js"
