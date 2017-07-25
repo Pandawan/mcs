@@ -1,11 +1,17 @@
 function hello {
 	execute @a ~ ~ ~ {
+		var hai = helloWorld
 		execute @p ~ ~ ~ {
-			var hey = dummy
-			hey @s = 10
-			function(hey)
-			function(hey, hai)
+			var hey = 15
+			$hey = 10
+			$hai = ALLAL
+			function($hey);
+
+			function($hai)
+			testfor @a[score_hello_world] 223dsa $hey $hai
 		}
+		function($hai)
+		$hai = 10
 	}
 	function(test)
 }

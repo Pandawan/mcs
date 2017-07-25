@@ -45,9 +45,11 @@ function run() {
 			return;
 		}
 		var output = mcs(data, { debug: false});
-		for (var file in output) {
-			var fileData = output[file];
-			writeFile(path.join(outputDir, file), fileData);
+		if (output) {
+			for (var file in output) {
+				var fileData = output[file];
+				writeFile(path.join(outputDir, file), fileData);
+			}
 		}
 	});
 }

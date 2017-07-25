@@ -81,7 +81,7 @@
 						else if (line.startsWith('var')) {
 							var exe = line.split(' ').splice(0);
 							// Check that it's a valid line
-							if (exe[1] && exe[2] === '=' && typeof exe[3] === 'string') { // TODO: Check that it's a valid scoreboard type
+							if (exe[1] && exe[2] === '=' && exe[3]) { // TODO: Check that it's a valid scoreboard type
 							// Make sure we're not using a variable that already exists
 							if (database.variables[exe[1]]) {
 								throwErr('Variable ' + exe[1] + ' is already defined', lineNumber);
@@ -94,21 +94,32 @@
 							throwErr('Variable is defined incorrectly', lineNumber);
 						}
 					}
-					// Other
-					else {
+					// Variable Set - $[name] [entity selector] = [value]
+					else if (line.startsWith('$')) {
 						var items = line.split(' ').splice(0);
-						var funcCall = /([a-z]+)\((([a-z]*(?:, ?)?)*)\)/.exec(line);
 
-						// Variable Set - [name] [entity selector] = [value]
-						if (database.variables[items[0]] && items[1] && items[2] === '=' && !isNaN(items[3])) {
+						var varName = items[0].replace('$', '');
+
+						if (database.variables[varName] && items[1] === '=' && items[2]) {
 							debug('Set Variable node ' + items[0] + ' ' + currentNode, lineNumber);
 							// Push new node data
-							pushNewNode({ type: 'setvar', selector: items[0], value: parseFloat(items[3])}, false);
+							pushNewNode({ type: 'setvar', name: varName, value: items[2]}, false);
+						} else {
+							throwErr('Trying to modify variable incorrectly', lineNumber);
 						}
+					}
+					// Other
+					else {
+						var funcCall = /([a-z]+)\((([$a-z]*(?:, ?)?)*)\)/.exec(line);
+
 						// Calling a function [name]([parameters...])
-						else if (funcCall) {
+						if (funcCall) {
 							debug('Function Call node ' + funcCall[1] + ' ' + currentNode, lineNumber);
 							pushNewNode({ type: 'call', function: funcCall[1], parameters: funcCall[2].replace(' ', '') }, false)
+						}
+						else if (line){
+							debug('Other node ' + line, lineNumber);
+							pushNewNode({ type: 'other', value: line}, false);
 						}
 					}
 				} else {
@@ -155,6 +166,9 @@
 			var currentFile = '';
 			var currentPre = [
 			];
+			var currentVars = [
+
+			];
 
 			if (tokens && tokens.node) {
 				// Loop until we've reached the end
@@ -178,16 +192,43 @@
 								pos: currentNode,
 								value: 'execute ' + node.selector + ' ' + node.relative + ' '
 							}
+							// Add it to database of prefixes
 							currentPre.push(pre)
 						}
+						// If node is create variable
 						else if (node.type === 'createvar') {
-							final[currentFile] += allCurrentPre() + 'scoreboard objectives add ' + node.name + ' ' + node.value + '\n';
+							var v = {
+								pos: currentNode.substring(0, currentNode.length - 2),
+								name: node.name,
+								value: node.value
+							};
+							// Add it to database of variables
+							currentVars.push(v);
 						}
+						// If we're changing a variable's value
 						else if (node.type === 'setvar') {
-							final[currentFile] += allCurrentPre() + 'scoreboard players set ' + node.selector + ' ' + node.value + '\n';
+							// Find that variable's position in array
+							var curVar = findWithKeyValue(getCurrentVars(), 'name', node.name);
+							// Check that it exists
+							if (curVar != -1) {
+								var v = {
+									pos: currentNode.substring(0, currentNode.length - 2),
+									name: currentVars[curVar].name,
+									value: node.value
+								};
+								// Add it to database of variables
+								currentVars.push(v);
+							} else {
+								// Not found
+								throwErr('No variable found with the name ' + node.name);
+							}
 						}
+						// Calling another function
 						else if (node.type === 'call') {
-							final[currentFile] += allCurrentPre() + 'call ' + node.function + '(' + node.parameters + ')\n';
+							addLine(allCurrentPre() + 'function ' + node.function + ' ' + node.parameters + '\n');
+						}
+						else if (node.type === 'other') {
+							addLine(allCurrentPre() + node.value + '\n');
 						}
 
 						// If the current node has more nodes inside
@@ -200,11 +241,38 @@
 				}
 			}
 
+			function addLine(line) {
+				final[currentFile] += applyVars(line);
+			}
+
+			/* Variables */
+			function getCurrentVars() {
+				var arr = [];
+				for(var num in currentVars) {
+					var v = currentVars[num];
+					if (isInScope(v.pos)) arr.push(v);
+				}
+				return arr;
+			}
+
+			function applyVars(input) {
+				var arr = getCurrentVars();
+				if (!arr) return input;
+
+				var output = input;
+				for (var i = arr.length -1; i >= 0; i--) {
+					var reg = new RegExp(('\$' + arr[i].name).replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
+					output = output.replace(reg, arr[i].value);
+				}
+				return output;
+			}
+
+			/* Prefixes */
 			function getCurrentPre() {
 				var arr = [];
 				for (var num in currentPre) {
 					var pre = currentPre[num];
-					if (currentNode.indexOf(pre.pos) == 0) arr.push(pre.value);
+					if (isInScope(pre.pos)) arr.push(pre.value);
 				}
 				return arr;
 			}
@@ -218,7 +286,21 @@
 				}
 			}
 
-			function goToNextParent(pop) {
+			/* General Utilities */
+			function isInScope (node) {
+				return currentNode.indexOf(node) == 0;
+			}
+
+			function findWithKeyValue (array, key, value) {
+				for (var i in array) {
+					if (array[i][key] == value) {
+						return i;
+					}
+				}
+				return -1;
+			}
+
+			function goToNextParent(pop, node) {
 				var arr = currentNode.split(' ');
 				if (pop) arr.pop();
 				arr[arr.length - 1] = (parseInt(arr[arr.length - 1]) + 1).toString();
@@ -251,7 +333,7 @@
 			}
 
 			console.log(err);
-			throw new Error(err);
+			throw new Error(msg);
 		}
 
 		function debug(msg, lineNumber) {
