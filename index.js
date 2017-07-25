@@ -21,7 +21,13 @@ if (process.argv[2] == '--help' || process.argv[2] == '-h') {
 		'        Convert file.mcs in the current directory',
 		'        mcs ./file.mcs'
 	].join('\n'));
-} else {
+}
+else if (process.argv[2] == '--version' || process.argv[2] == '-v') {
+	console.log([
+		'mcs v1.0.0'
+	].join('\n'));
+}
+else {
 	run();
 }
 

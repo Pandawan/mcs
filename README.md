@@ -6,18 +6,13 @@ Latest Compatible Minecraft Version: 1.12
 
 <sup>Note: It works more similarly to a pre-processor, but has a syntax similar to JavaScript, which is why I called it a Script.<sup>
 
-## TODO
-For 1.0.0:
-- [x] Allow for variables with spaces
-- [x] Change function calling
-- [ ] Finish Wiki
-- [x] Allow variables in root scope
-
+# TODO
 For 2.0.0
 - [ ] Add If/Unless code blocks
 - [ ] Separate statements with `{ } ;` (punctuation) rather than newlines
 - [ ] Add For loops (If possible)
 - [ ] Add function parameters (scoreboards)
+- [ ] Add data pack and namespace support
 - [ ] Clean up Code (refractor and separate lexer, parser and mcs)
 - [ ] Rewrite mcs.js with more optimization and better style
 
