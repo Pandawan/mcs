@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const mcs = require("./mcs");
 
-fs.readFile(path.join(__dirname, 'file.mcs'), 'utf8', function (err, data) {
+fs.readFile(path.join(__dirname, 'input/file.mcs'), 'utf8', function (err, data) {
 	if (err) {
 		console.log(err);
 		return;
@@ -12,7 +12,7 @@ fs.readFile(path.join(__dirname, 'file.mcs'), 'utf8', function (err, data) {
 	var output = mcs(data, { debug: false});
 	for (var file in output) {
 		var fileData = output[file];
-		writeFile(file, fileData);
+		writeFile('output/' + file, fileData);
 	}
 });
 
