@@ -1,20 +1,15 @@
+
+
 # mcs: Minecraft Script
+
+[![npm](https://img.shields.io/npm/v/mcs.svg?style=flat-square)](https://www.npmjs.com/package/mcs)
+[![license](https://img.shields.io/github/license/pandawanfr/mcs.svg?style=flat-square)](https://github.com/pandawanfr/mcs)
 
 `mcs` is a simple and easy to use scripting language which compiles into Minecraft functions.
 
 Latest Compatible Minecraft Version: 1.12
 
-<sup>Note: It works more similarly to a pre-processor, but has a syntax similar to JavaScript, which is why I called it a Script.<sup>
-
-# TODO
-For 2.0.0
-- [ ] Add If/Unless code blocks
-- [ ] Separate statements with `{ } ;` (punctuation) rather than newlines
-- [ ] Add For loops (If possible)
-- [ ] Add function parameters (scoreboards)
-- [ ] Add data pack and namespace support
-- [ ] Clean up Code (refractor and separate lexer, parser and mcs)
-- [ ] Rewrite mcs.js with more optimization and better style
+Note: It works more similarly to a pre-processor, but has a syntax similar to JavaScript, which is why I called it a Script.
 
 # Documentation
 Learn how to write in Minecraft Script in the [Wiki](https://github.com/PandawanFr/mcs/wiki)
@@ -65,15 +60,37 @@ $ mcs [input] [output (optional)]
 ```
 Using `mcs` in the CLI takes one require argument, the `input` file (.mcs file), and outputs to the (optional) `output` directory. If no output directory is given, `./` is used.
 
-# Development
 
-Checkout this repository locally, then:
+## TODO
+For 2.0.0
+- [ ] Add If/Unless code blocks
+- [ ] Separate statements with `{ } ;` (punctuation) rather than newlines
+- [ ] Add For loops (If possible)
+- [ ] Add function parameters (scoreboards)
+- [ ] Add data pack and namespace support
+- [ ] Clean up Code (refractor and separate lexer, parser and mcs)
+- [ ] Rewrite mcs.js with more optimization and better style
 
-```sh
-$ npm i
-$ node index.js [input] [output (optional)]
+
+# Contributing
+1. Create an issue and describe your idea
+2. [Fork it](https://github.com/PandawanFr/mcs/fork)
+3. Checkout this repository
+4. Install the dependencies `npm install` or `yarn`
+5. Test your changes with
+```shell
+$ node index.js [input] [output]
+or
+$ npm test
+edit /test/input/file.mcs and check output at /test/output/
 ```
-
-To test on the web:
+6. You can also test your changes on the web with
 - Copy the `mcs.js` file to `./test/web`
 - Open the `index.html` file
+7. Once done, create a pull request
+
+# Authors
+Made by [Pandawan](http://twitter.com/PandawanYT)
+
+# License
+Please see the [LICENSE](https://github.com/PandawanFr/mcs/blob/master/LICENSE) file
