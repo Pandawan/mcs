@@ -16,7 +16,6 @@ For 2.0.0
 - [ ] Clean up Code (refractor and separate lexer, parser and mcs)
 - [ ] Rewrite mcs.js with more optimization and better style
 
-
 # Documentation
 Learn how to write in Minecraft Script in the [Wiki](https://github.com/PandawanFr/mcs/wiki)
 
@@ -30,7 +29,7 @@ Installation via `npm`:
 $ npm install mcs
 
 > var mcs = require('mcs');
-> mcs('function hello {\n say("world") \n}');
+> mcs('function hello {\n say hello world \n}');
 ```
 Alternatively you can install mcs globally so that it may be run from the command line.
 
@@ -53,9 +52,9 @@ Add to your html
 
 ## JS
 ```javascript
-var input = 'function hello {\n say("world") \n}'
+var input = 'function hello {\n say hello world \n}'
 var result = mcs(input)
-// result = { "hello.mcfunction": "say world" }
+// result = { "hello.mcfunction": "say hello world" }
 ```
 
 `mcs()` takes one required argument, the input (string to convert), and returns a JSON object, with the file name as key and its file content as value.
