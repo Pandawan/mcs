@@ -4,13 +4,12 @@ const fs = require("fs");
 const path = require("path");
 const mcs = require("./mcs");
 const chalk = require('chalk');
-const yargs = require('yargs');
 
 let input = '';
 let outputDir = './';
 let curDir = path.normalize(process.cwd());
 
-if (yargs.argv.help) {
+if (process.argv[2] == '--help' || process.argv[2] == '-h') {
 	console.log([
 		'    mcs',
 		'    A Minecraft Scripting language which converts to functions',
@@ -28,16 +27,16 @@ if (yargs.argv.help) {
 
 function run() {
 
-	if (yargs.argv._[0]  && /.*(.mcs)$/.test(yargs.argv._[0])) {
-		input = path.join(curDir, yargs.argv._[0]);
+	if (process.argv[2]  && /.*(.mcs)$/.test(process.argv[2])) {
+		input = path.normalize(process.argv[2]);
 	}
 	else {
 		console.log(chalk.red('Error: ') + 'No valid input file (.mcs) given!');
 		return;
 	}
 
-	if (yargs.argv._[1]) {
-		outputDir = path.normalize(yargs.argv._[1]);
+	if (process.argv[3]) {
+		outputDir = path.normalize(process.argv[3]);
 	}
 
 	fs.readFile(input, 'utf8', function (err, data) {
