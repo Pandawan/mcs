@@ -1,21 +1,36 @@
-function hello {
-	execute @a ~ ~ ~ {
-		var hai = helloWorld
-		execute @p ~ ~ ~ {
-			var hey = 15
-			$hey = 10
-			$hai = ALLAL
-			function($hey);
+// Root variables
+var a = A
+$a = 10000
 
-			function($hai)
-			testfor @a[score_hello_world] 223dsa $hey $hai
-		}
-		function($hai)
-		$hai = 10
+function hello {
+    // Scope variable testing
+	var hai = helloWorld
+
+	# Execute block
+	execute @p ~ ~ ~ {
+	    // Scope variable inside block
+		var hey = 15
+
+		// Setting variables
+		$hey = 10
+		$hai = hello world
+
+		# Using variable in regular command
+		say @a[score_hello_world] $hey
 	}
-	function(test)
+	// Setting variables after
+	$hai = 10
 }
 
-function hi {
-	 function(check)
+function test {
+	// With variables
+	var message = Hello World
+	var tellrawMsg = {"text":"$message"}
+
+	# Commands with nested variables
+	tellraw @a $tellrawMsg
+	tellraw $a
+
+	# Calling another function
+	hello()
 }

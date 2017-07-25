@@ -7,12 +7,20 @@ Latest Compatible Minecraft Version: 1.12
 <sup>Note: It works more similarly to a pre-processor, but has a syntax similar to JavaScript, which is why I called it a Script.<sup>
 
 ## TODO
-- Clean up Code (try to refractor and make everything better for 1.0.0)
-- Add For loops (If possible)
-- Change function Calling
-- Separate statements with `{ } ;` (punctuation)
-- Finish Wiki
-- Add If/Unless code blocks
+For 1.0.0:
+- [x] Allow for variables with spaces
+- [x] Change function calling
+- [ ] Finish Wiki
+- [x] Allow variables in root scope
+
+For 2.0.0
+- [ ] Add If/Unless code blocks
+- [ ] Separate statements with `{ } ;` (punctuation) rather than newlines
+- [ ] Add For loops (If possible)
+- [ ] Add function parameters (scoreboards)
+- [ ] Clean up Code (refractor and separate lexer, parser and mcs)
+- [ ] Rewrite mcs.js with more optimization and better style
+
 
 # Documentation
 Learn how to write in Minecraft Script in the [Wiki](https://github.com/PandawanFr/mcs/wiki)
