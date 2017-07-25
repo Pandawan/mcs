@@ -15,7 +15,7 @@ Installation via `npm`:
 $ npm install mcs
 
 > var mcs = require('mcs');
-> mcs('function hello { say("world") }');
+> mcs('function hello {\n say("world") \n}');
 ```
 Alternatively you can install mcs globally so that it may be run from the command line.
 
