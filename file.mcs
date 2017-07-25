@@ -1,0 +1,15 @@
+function hello {
+	execute hey ~ ~ ~ {
+		execute hii ~ ~ ~ {
+			var hey = dummy
+			hey @s = 10
+			function(hey)
+			function(hey, hai)
+		}
+	}
+	function(test)
+}
+
+function hi {
+	 function(check)
+}
