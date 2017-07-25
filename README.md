@@ -2,6 +2,8 @@
 
 `mcs` is a simple and easy to use scripting language which compiles into Minecraft functions.
 
+Latest Compatible Minecraft Version: 1.12
+
 # Documentation
 Learn how to write in Minecraft Script in the [Wiki](https://github.com/PandawanFr/mcs/wiki)
 
