@@ -21,9 +21,11 @@ if (process.argv[2] == '--help' || process.argv[2] == '-h') {
 		'        mcs --help                      - Display this help menu',
 		'    Examples:',
 		'        Convert file.mcs in the current directory',
-		'        mcs ./file.mcs'
+		'        mcs ./file.mcs',
 		'        Convert file.mcs in the ./output directory',
-		'        mcs ./file.mcs ./output'
+		'        mcs ./file.mcs ./output',
+		'    ',
+		'    Check repo for more info: https://github.com/PandawanFr/mcs'
 	].join('\n'));
 }
 else if (process.argv[2] == '--version' || process.argv[2] == '-v') {

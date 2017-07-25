@@ -6,8 +6,6 @@
 
 		/*
 		* Obj: String with function/commands to minify
-		* Options:
-		*   - Obfuscate: Whether or not to obfuscate every function name, scoreboard, and tag
 		* Returns:
 		*   - Array of Objects:
 		*        - Name: Name of Function file
@@ -20,11 +18,6 @@
 				console.error(error);
 				return error;
 			}
-
-
-			var result = {
-
-			};
 
 			/* LEXER */
 			function lexer () {
@@ -430,6 +423,7 @@
 				}
 			}
 
+			/* Actually run everything */
 			let tokens = lexer();
 			var output = parser(tokens);
 
@@ -438,8 +432,13 @@
 
 		mcs.help = function help() {
 			console.log([
-				'mcs',
-				'A Minecraft Scripting language which converts to functions'
+				'    mcs',
+				'    A Minecraft Scripting language which converts to functions',
+				'    ',
+				'    Usage:',
+				'        var output = mcs(input) - Converts MCS language into object of function files.',
+				'    ',
+				'    Check repo for more info: https://github.com/PandawanFr/mcs'
 			].join('\n'));
 		};
 
