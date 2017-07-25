@@ -1,6 +1,6 @@
 {
 	"name": "mcs",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "A Minecraft Scripting language which converts to functions",
 	"main": "mcs.js",
 	"scripts": {
