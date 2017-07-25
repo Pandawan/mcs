@@ -70,7 +70,7 @@ function hello {
 			converted = true;
 		} else {
 			btn.textContent = 'Convert';
-			ct.textContent = 'function hello {\nexecute @a ~ ~ ~ {\nexecute @p ~ ~ ~ {\n\t\t\tvar hey = dummy\n\t\t\they @s = 10\n\t\t\tfunction(hey)\n\t\t\tfunction(hey, hai)\n\t\t}\n\t}\n\tfunction(test)\n}';
+			ct.textContent = 'function hello {\n\texecute @a ~ ~ ~ {\n\t\texecute @p ~ ~ ~ {\n\t\t\tvar hey = dummy\n\t\t\they @s = 10\n\t\t\tfunction(hey)\n\t\t\tfunction(hey, hai)\n\t\t}\n\t}\n\tfunction(test)\n}';
 			hd.textContent = 'input.mcs';
 			converted = false;
 		}

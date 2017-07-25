@@ -2,20 +2,54 @@
 
 `mcs` is a simple and easy to use scripting language which compiles into Minecraft functions.
 
+# Documentation
+Learn how to write in Minecraft Script in the [Wiki](https://github.com/PandawanFr/mcs/wiki)
 
-# Installing globally:
+# Installation
+mcs has been tested with node and as a standalone script. Though it should also support CommonJS (node, browserify) and AMD (RequireJS).
 
+## Node
 Installation via `npm`:
 
-     npm install mcs -g
+```shell
+$ npm install mcs
 
-This will install `mcs` globally so that it may be run from the command line.
+> var mcs = require('mcs');
+> mcs('function hello { say("world") }');
+```
+Alternatively you can install mcs globally so that it may be run from the command line.
 
-## Usage:
+```shell
+$ npm install mcs -g
+$ mcs ./input.mcs ./output/
+```
 
-     mcs [input] [output (optional)]
+## Standalone/Script
 
-`[input]` is required, while `[output]` defaults to `./`.
+Download [msc.js](https://github.com/PandawanFr/mcs/blob/master/mcs.js)
+
+Add to your html
+
+```html
+<script type="text/javascript" src="path/to/mcs.js"></script>
+```
+
+# Usage
+
+## JS
+```javascript
+var input = 'function hello {\n say("world") \n}'
+var result = mcs(input)
+// result = { "hello.mcfunction": "say world" }
+```
+
+`mcs()` takes one required argument, the input (string to convert), and returns a JSON object, with the file name as key and its file content as value.
+
+## CLI
+```shell
+$ mcs [input] [output (optional)]
+```
+Using `mcs` in the CLI takes one require argument, the `input` file (.mcs file), and outputs to the (optional) `output` directory. If no output directory is given, `./` is used.
 
 # Development
 
