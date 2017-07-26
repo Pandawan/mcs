@@ -202,10 +202,7 @@
 						}
 						// Comment starting with #
 						else if (line.startsWith('#')) {
-							var goodComment = line.replace('#', '');
-							debug('Comment node ' + goodComment, lineNumber);
-							var lastNode = Object.keys(database.node).length + 1;
-							database.node[lastNode] = { type: 'comment', value: goodComment};
+							throwErr('\"#\" comment must be inside a function.', lineNumber);
 						}
 						// Any other line (don't parse // comments )
 						else if (line && !line.startsWith('//')) {
