@@ -7,6 +7,8 @@
 
 `mcs` is a simple and easy to use scripting language which compiles into Minecraft functions.
 
+Try it with the [Online Editor](https://pandawanfr.github.io/MCSEditor/)!
+
 Latest Compatible Minecraft Version: 1.12
 
 Note: It works more similarly to a pre-processor, but has a syntax similar to JavaScript, which is why I called it a Script.
