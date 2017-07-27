@@ -37,12 +37,20 @@ $ mcs ./input.mcs ./output/
 
 ## Standalone/Script
 
+Add to your html
+
+```html
+<script src="https://unpkg.com/mcs"></script>
+```
+
+### Or include it manually
+
 Download [msc.js](https://github.com/PandawanFr/mcs/blob/master/mcs.js)
 
 Add to your html
 
 ```html
-<script type="text/javascript" src="path/to/mcs.js"></script>
+<script src="path/to/mcs.js"></script>
 ```
 
 # Usage
@@ -70,6 +78,8 @@ For 2.0.0
 - [ ] Add For loops (If possible)
 - [ ] Add function parameters (scoreboards)
 - [ ] Add data pack and namespace support
+- [ ] Use Regexp to parse data
+- [ ] Allow different coding styles (no space before {}...)
 - [ ] Clean up Code (refractor and separate lexer, parser and mcs)
 - [ ] Rewrite mcs.js with more optimization and better style
 
