@@ -65,6 +65,7 @@ function InputStream(input) {
 // Lexer (converts everything into tokens)
 function TokenStream(input) {
 	var current = null;
+	// List of all keywords that are available
 	var keywords = " function if elseif else return execute true false var for macro run ";
 	var lastVal = null;
 	return {
@@ -98,6 +99,7 @@ function TokenStream(input) {
 	function is_whitespace(ch) {
 		return " \t\n".indexOf(ch) >= 0;
 	}
+	// Read until the given predicate returns true
 	function read_while(predicate) {
 		var str = "";
 		while (!input.eof() && predicate(input.peek()))
@@ -116,6 +118,7 @@ function TokenStream(input) {
 		});
 		return { type: "num", value: parseFloat(number) };
 	}
+	// Read identifiers, can return a keyword, an ivar ($variable), or reg (anything else)
 	function read_ident() {
 		var id = read_while(is_id);
 
@@ -150,6 +153,7 @@ function TokenStream(input) {
 	function read_string() {
 		return { type: "str", value: read_escaped('"') };
 	}
+	// Read comments that need to be added (#)
 	function read_comment() {
 		var output = read_while(function(ch){ return ch != "\n" });
 		return { type: "comment", value: output };
@@ -158,6 +162,7 @@ function TokenStream(input) {
 		read_while(function(ch){ return ch != "\n" });
 		input.next();
 	}
+	// Check whether or not the line is a // comment, skip it if so
 	function check_comment() {
 		var output = read_while(function(ch){ return ch == "/"});
 		if (output == '//'){
@@ -167,6 +172,7 @@ function TokenStream(input) {
 			input.next();
 		}
 	}
+	// Read the next character, assign tokens
 	function read_next() {
 		read_while(is_whitespace);
 		if (input.eof()) return null;
@@ -211,6 +217,7 @@ function TokenStream(input) {
 // Parser (actually parses data)
 var FALSE = { type: "bool", value: false };
 function Parser(input) {
+	// Order of math operations, greater means included first
 	var PRECEDENCE = {
 		"=": 1,
 		"||": 2,
@@ -259,6 +266,7 @@ function Parser(input) {
 	function unexpected() {
 		input.croak("Unexpected token: " + JSON.stringify(input.peek()));
 	}
+	// Check whether or not to parse this through binary operations
 	function maybe_binary(left, my_prec) {
 		var tok = is_op();
 		if (tok) {
@@ -295,15 +303,18 @@ function Parser(input) {
 			args: delimited("(", ")", ",", parse_expression),
 		};
 	}
+	// Run calls, basically just wait for the run keyword and then parses it as a JS call ( name(parameters...) )
 	function parse_run() {
 		input.next();
 		return parse_expression();
 	}
+	// Variable names can't be ivar nor keyword, check that it's a reg
 	function parse_varname() {
 		var name = input.next();
 		if (name.type != "reg") input.croak("Expecting variable name");
 		return name.value;
 	}
+	// Parse if statements, add elseif if there are some, and add else if there is one
 	function parse_if() {
 		skip_kw("if");
 		var cond = delimited("(", ")", ",", parse_expression);
@@ -331,10 +342,12 @@ function Parser(input) {
 		}
 		return ret;
 	}
+	// Parse a var declaration
 	function parse_var() {
 		skip_kw("var");
 		return { type: 'var', value: parse_varname() };
 	}
+	// WIP - Parse a for loop
 	function parse_for() {
 		input.croak("For loops are currently not supported");
 		skip_kw("for");
@@ -347,6 +360,13 @@ function Parser(input) {
 		};
 		return ret;
 	}
+	/* Parse a function
+		This can be taken in two ways:
+		1. actual function declaration ( function name { } )
+		2. minecraft function command ( function name [if/unless...] )
+
+		Therefore, testing if there are reg arguments following it, if so, it's Option 2.
+	*/
 	function parse_function() {
 		// Skip the function keyword
 		input.next();
@@ -377,7 +397,7 @@ function Parser(input) {
 			body: parse_expression()
 		};
 	}
-	// Macros
+	// Parse a macro, basically a function with parameters
 	function parse_macro() {
 		return {
 			type: "macro",
@@ -386,12 +406,14 @@ function Parser(input) {
 			body: parse_expression()
 		};
 	}
+	// Bool just checks if the value is "true"
 	function parse_bool() {
 		return {
 			type  : "bool",
 			value : input.next().value == "true"
 		};
 	}
+	// Return statements
 	function parse_return() {
 		input.next();
 		return {
@@ -399,12 +421,19 @@ function Parser(input) {
 			value: parse_expression()
 		};
 	}
+	// Parsing a comment as an actual comment
 	function parse_comment() {
 		return {
 			type  : "comment",
 			value : input.next().value
 		};
 	}
+	/* Parsing reg is complicated
+
+		Most of the time, a reg is simply a minecraft command and its arguments, it checks if it's an actual command, and if so, it returns the full command
+		Sometimes, it's the name of a macro or other function calling, if so return the exact token
+		If it's neither of those, then it's unexpected
+	*/
 	function parse_reg() {
 		// Regs are commands and command arguments
 		var final = { type: "command", value: [] };
@@ -427,7 +456,7 @@ function Parser(input) {
 		expr = expr();
 		return is_punc("(") ? parse_call(expr) : expr;
 	}
-	// Parses through anything
+	// Major parser, checks what the token is an tells it to how to parse it
 	function parse_atom() {
 		return maybe_call(function(){
 			if (is_punc("(")) {
@@ -459,21 +488,26 @@ function Parser(input) {
 			unexpected();
 		});
 	}
+	// Parsing a program/top level
 	function parse_toplevel() {
 		var prog = [];
 		while (!input.eof()) {
 			prog.push(parse_expression());
+
+			// Comments are special because they don't require a ; at the end, so we need to check that it's not a comment
 			if (is_comment()) prog.push(parse_comment());
 			else if (!input.eof() && (!input.last() || (input.last() && input.last().type != "comment"))) skip_punc(";");
 		}
 		return { type: "prog", prog: prog };
 	}
+	// Parse through a full program
 	function parse_prog() {
 		var prog = delimited("{", "}", ";", parse_expression);
 		if (prog.length == 0) return FALSE;
 		if (prog.length == 1) return prog[0];
 		return { type: "prog", prog: prog };
 	}
+	// Parse through everything, parse binary and calls just in case
 	function parse_expression() {
 		return maybe_call(function(){
 			return maybe_binary(parse_atom(), 0);
@@ -482,11 +516,7 @@ function Parser(input) {
 }
 
 
-
-
-
-
-
+// Input for now (too lazy to use a text file)
 var input = [
 	'# Comm',
 	'// Comment',
@@ -504,6 +534,8 @@ var input = [
 	'if (hey) { } elseif () { } elseif () {} else { }'
 ].join('\n');
 
+// Tokenize the **** out of this
 var token = Parser(TokenStream(InputStream(input)));
 
+// What did we get? Also, its pretty!
 console.log(JSON.stringify(token, null, '\t'));
