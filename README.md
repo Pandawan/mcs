@@ -45,7 +45,7 @@ Add to your html
 
 ### Or include it manually
 
-Download [msc.js](https://github.com/PandawanFr/mcs/blob/master/mcs.js)
+Download [mcs.js](https://github.com/PandawanFr/mcs/blob/master/mcs.js)
 
 Add to your html
 
