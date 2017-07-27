@@ -400,14 +400,16 @@
 					err = msg + ' at (' + ++lineNumber + ')';
 				}
 
+				var consoleErr = err;
+
 				if (chalk) {
-					err = chalk.red('Error: ') + err;
+					consoleErr = chalk.red('Error: ') + err;
 				} else {
-					err = 'Error: ' + err;
+					consoleErr = 'Error: ' + err;
 				}
 
-				console.log(err);
-				throw new Error(msg);
+				console.log(consoleErr);
+				throw new Error(err);
 			}
 
 			function debug(msg, lineNumber) {
