@@ -1,0 +1,89 @@
+// THIS IS THE GOAL FOR ~2.0's syntax!
+
+// Declare a namespace
+@namespace myNamespace
+
+// This is the root, it's not inside any group or function
+
+// Groups are used to create folders in the path (namespace:group/function)
+group myFolder {
+
+	// Functions get separated into files, this would be myFunction.mcfunction
+	function myFunction {
+
+		// Unparsed comments (get removed) can be anywhere
+		# Parsed comments (get added to final function file) cannot be in root
+
+		// Normal minecraft commands
+		say hello world
+
+		// Variables (contains a string)
+		var stringVar = "a string var";
+
+		// Variable with a number
+		var numberVar = 3.1415;
+
+		// Variable with a boolean
+		var boolVar = true;
+
+		// Variable with arrays (of any type)
+		var arrVar = [15, "test", false];
+
+		// Arrays can be accessed like so
+		$arrVar[1]; // Returns "test" (index starts at 0)
+
+		// Constants (can't be modified once set)
+		const constVar = false;
+
+		// Use a variable or constant by preceding its name with $
+		$stringVar = "another string";
+
+		// You can use a variable anywhere
+		tellraw @a {"text":$stringVar}
+
+		// If statements
+		if ($numberVar < 4) {
+			say Number is less than 4;
+		}
+		// Else if statements
+		elseif ($numberVar == 4) {
+		    say Number is equal to 4;
+		}
+		// Else
+		else {
+		   say Number is greater than 4;
+		}
+
+		// For loops, from 0->3 inclusive
+		for(var i = 0; i < 4; i++) {
+			// This will say "Num 0", "Num 1", "Num 2", "Num 3"
+			say Num $i;
+		}
+
+		// Execute block (adds the execute prefix to any command inside its { } )
+		execute @a ~ ~ ~ {
+			say Hello World;
+		}
+
+		// Calling another function (don't worry about namespace or groups)
+		function callAMacro;
+	};
+};
+
+// Macros allow you to write similar commands more quickly
+macro aMacro (parameter1, parameter2) {
+	return tellraw $parameter1 {"text":"Hello, my name is $parameter2."};
+};
+
+// A function to demonstrate macros
+function callAMacro {
+
+	var selector = "@a[score_hello_min=1]";
+
+	// Call a macro and add its return value as a new line
+	run aMacro($selector, "John");
+
+	// This will compile into
+	tellraw @a[score_hello_min=1] {"text":"Hello, my name is John."}
+
+};
