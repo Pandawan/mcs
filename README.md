@@ -106,3 +106,5 @@ Made by [Pandawan](http://twitter.com/PandawanYT)
 
 # License
 Please see the [LICENSE](https://github.com/PandawanFr/mcs/blob/master/LICENSE) file
+
+Minecraft Script is not affiliated with Minecraft or Mojang AB.
