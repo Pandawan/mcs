@@ -15,16 +15,18 @@ Current Progress:
 V - # comments
 V - // comments
 V - variable assigning
-V - binary math
+V - binary operations
 V - bools and strings
 V - return
 V - basic commands
 V - if elseif else
 X - for loops
-V - macro run call (run macro())
+V - macro calls (macro())
 V - macro
 V - basic Functions
 X - namespaces
+X - Arrays
+V - evaluation blocks
 */
 
 // List of all commands that exist in mc
@@ -66,7 +68,7 @@ function InputStream(input) {
 function TokenStream(input) {
 	var current = null;
 	// List of all keywords that are available
-	var keywords = " function if elseif else return execute true false var for macro run ";
+	var keywords = " function if elseif else return execute true false var for macro ";
 	var lastVal = null;
 	return {
 		next  : next,
@@ -99,7 +101,7 @@ function TokenStream(input) {
 	function is_whitespace(ch) {
 		return " \t\n".indexOf(ch) >= 0;
 	}
-	// Read until the given predicate returns true
+	// Read until the given predicate returns false
 	function read_while(predicate) {
 		var str = "";
 		while (!input.eof() && predicate(input.peek()))
@@ -150,8 +152,73 @@ function TokenStream(input) {
 		}
 		return str;
 	}
+	/* Evaluation blocks
+	Inside a string, content inside `` will be parsed as if it was normal syntax.
+	This allows for easier variable/macro integration: "math result: `math(1,2) + 2`" rather than "math result: " + (math(1,2) + 2)
+	(Although the second option is still available if you need it).
+	*/
+	function read_evaled(val) {
+		// Don't do it if it doesn't need evaluation
+		if (val.indexOf("`") >= 0){
+
+			var eval = false, final = [], str = "";
+			var arr = val.split('');
+
+			for (var i = 0; i < arr.length; i++) {
+				var ch = arr[i];
+
+				// Currently in an eval block
+				if (eval) {
+					if (ch == '`'){
+						eval = false;
+						// Parse the whole thing as if it was a full code block
+						var parsedEval = Parser(TokenStream(InputStream(str)));
+						console.log(parsedEval);
+						if (parsedEval.prog.length != 0) {
+							for (var x = 0; x < parsedEval.prog.length; x++) {
+								if (parsedEval.prog[x].type == "comment") {
+									input.croak("Comments are not allowed in evaluation blocks");
+								}
+								else if (parsedEval.prog[x].type == "function") {
+									input.croak("Functions are not allowed in evaluation blocks");
+								}
+								else if (parsedEval.prog[x].type == "macro") {
+									input.croak("Creating macros is not allowed in evaluation blocks");
+								}
+							}
+							final.push(parsedEval);
+						}
+						str = "";
+					} else {
+						str += ch;
+
+						if (i == arr.length - 1) {
+							if (str) final.push({ type: "str", value: str });
+						}
+					}
+				}
+				// Don't eval
+				else {
+					if (ch == '`'){
+						eval = true;
+						if (str) final.push({ type: "str", value: str });
+						str = "";
+					}
+					else {
+						str += ch;
+						if (i == arr.length - 1) {
+							if (str) final.push({ type: "str", value: str });
+						}
+					}
+				}
+			}
+			return final;
+		} else {
+			return val;
+		}
+	}
 	function read_string() {
-		return { type: "str", value: read_escaped('"') };
+		return { type: "str", value: read_evaled(read_escaped('"')) };
 	}
 	// Read comments that need to be added (#)
 	function read_comment() {
@@ -303,15 +370,10 @@ function Parser(input) {
 			args: delimited("(", ")", ",", parse_expression),
 		};
 	}
-	// Run calls, basically just wait for the run keyword and then parses it as a JS call ( name(parameters...) )
-	function parse_run() {
-		input.next();
-		return parse_expression();
-	}
 	// Variable names can't be ivar nor keyword, check that it's a reg
 	function parse_varname() {
 		var name = input.next();
-		if (name.type != "reg") input.croak("Expecting variable name");
+		if (name.type != "ivar") input.croak("Expecting variable name");
 		return name.value;
 	}
 	// Parse if statements, add elseif if there are some, and add else if there is one
@@ -324,18 +386,6 @@ function Parser(input) {
 			cond: cond,
 			then: then,
 		};
-
-		ret.elseif = [];
-
-		while (is_kw("elseif")) {
-			input.next();
-			var newElseIf = {
-				type: 'elseif',
-				cond: delimited("(", ")", ",", parse_expression),
-				then: parse_expression()
-			}
-			ret.elseif.push(newElseIf);
-		}
 		if (is_kw("else")) {
 			input.next();
 			ret.else = parse_expression();
@@ -361,11 +411,11 @@ function Parser(input) {
 		return ret;
 	}
 	/* Parse a function
-		This can be taken in two ways:
-		1. actual function declaration ( function name { } )
-		2. minecraft function command ( function name [if/unless...] )
+	This can be taken in two ways:
+	1. actual function declaration ( function name { } )
+	2. minecraft function command ( function name [if/unless...] )
 
-		Therefore, testing if there are reg arguments following it, if so, it's Option 2.
+	Therefore, testing if there are reg arguments following it, if so, it's Option 2.
 	*/
 	function parse_function() {
 		// Skip the function keyword
@@ -406,19 +456,19 @@ function Parser(input) {
 			body: parse_expression()
 		};
 	}
-	// Bool just checks if the value is "true"
-	function parse_bool() {
-		return {
-			type  : "bool",
-			value : input.next().value == "true"
-		};
-	}
 	// Return statements
 	function parse_return() {
 		input.next();
 		return {
 			type: "return",
 			value: parse_expression()
+		};
+	}
+	// Bool just checks if the value is "true"
+	function parse_bool() {
+		return {
+			type  : "bool",
+			value : input.next().value == "true"
 		};
 	}
 	// Parsing a comment as an actual comment
@@ -430,9 +480,9 @@ function Parser(input) {
 	}
 	/* Parsing reg is complicated
 
-		Most of the time, a reg is simply a minecraft command and its arguments, it checks if it's an actual command, and if so, it returns the full command
-		Sometimes, it's the name of a macro or other function calling, if so return the exact token
-		If it's neither of those, then it's unexpected
+	Most of the time, a reg is simply a minecraft command and its arguments, it checks if it's an actual command, and if so, it returns the full command
+	Sometimes, it's the name of a macro or other function calling, if so return the exact token
+	If it's neither of those, then it's unexpected
 	*/
 	function parse_reg() {
 		// Regs are commands and command arguments
@@ -447,9 +497,8 @@ function Parser(input) {
 			}
 			return final;
 		} else {
-			// If the last one was run, then it's a run call
-			if (input.last() && (input.last().value == 'run' || input.last().value == '(')) return input.next();
-			unexpected();
+			return input.next();
+			//unexpected();
 		}
 	}
 	function maybe_call(expr) {
@@ -471,7 +520,6 @@ function Parser(input) {
 			if (is_kw("true") || is_kw("false")) return parse_bool();
 			if (is_kw("for")) return parse_for();
 			if (is_kw("function")) return parse_function();
-			if (is_kw("run")) return parse_run();
 
 			// TODO: Parse Macro
 			if (is_kw("macro")) {
@@ -517,22 +565,26 @@ function Parser(input) {
 
 
 // Input for now (too lazy to use a text file)
+
 var input = [
 	'# Comm',
 	'// Comment',
 	'# dwagkdwjak',
-	'var hey = 1;',
+	'var $hey = 1;',
 	'1 + 1;',
 	'return $hey;',
 	'say $hey Hello World;',
-	'macro hi (hey) { };',
-	'var awdadwa = 10;',
+	'macro hi ($hey) { say hey; return $hey; };',
+	'var $awdadwa = 10;',
 	'# yet another comment',
 	'function hello { };',
-	'var awd1 = 10;',
-	'run foo(a,1);',
-	'if (hey) { } elseif () { } elseif () {} else { }'
+	'var $awd1 = 10;',
+	'foo($a,$as);',
+	'var $heyyy = $hey + "test";',
+	'if ($hey) { } else if ($hey) { } else if ($hey) { } else { };',
+	'var $evaledString = "something `1 + 2` is a number";'
 ].join('\n');
+
 
 // Tokenize the **** out of this
 var token = Parser(TokenStream(InputStream(input)));
