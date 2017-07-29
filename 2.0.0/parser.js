@@ -12,7 +12,7 @@ Parser based on: http://lisperator.net/pltut/
 
 Current Progress:
 
-V - # comments
+V - # comments (only on new line)
 V - // comments
 V - variable assigning
 V - binary operations
@@ -23,10 +23,12 @@ V - if elseif else
 X - for loops
 V - macro calls (macro())
 V - macro
-V - basic Functions
-X - namespaces
+V - basic functions
+V - @!settings like namespaces (only on new line)
 X - Arrays
 V - evaluation blocks
+V - execute blocks
+V - selector
 */
 
 // List of all commands that exist in mc
@@ -34,22 +36,31 @@ var availableCommands = ["advancement", "ban", "blockdata", "clear", "clone", "d
 
 // InputStream (Read input character by character)
 function InputStream(input) {
-	var pos = 0, line = 1, col = 0, lastVal = null;
+	var pos = 0, line = 1, col = 0, lastVal = null, lastWasNewLineVal = true;
 	return {
 		next  : next,
 		peek  : peek,
 		eof   : eof,
 		croak : croak,
-		last  : last
+		last  : last,
+		lastWasNewLine: lastWasNewLine
 	};
 	function next() {
+		// Knows whether or not we switched to a new line
+		if (peek() == "\n") lastWasNewLineVal = true;
+		else lastWasNewLineVal = false;
+		// Get the last character
 		lastVal = peek();
+
 		var ch = input.charAt(pos++);
 		if (ch == "\n") line++, col = 0; else col++;
 		return ch;
 	}
 	function last() {
 		return lastVal;
+	}
+	function lastWasNewLine() {
+		return lastWasNewLineVal;
 	}
 	function peek() {
 		return input.charAt(pos);
@@ -123,7 +134,6 @@ function TokenStream(input) {
 	// Read identifiers, can return a keyword, an ivar ($variable), or reg (anything else)
 	function read_ident() {
 		var id = read_while(is_id);
-
 		var type;
 		if (is_keyword(id)) type = "kw";
 		else if (is_ivar(id)) type = "ivar"
@@ -220,8 +230,31 @@ function TokenStream(input) {
 	function read_string() {
 		return { type: "str", value: read_evaled(read_escaped('"')) };
 	}
+	function selector_or_setting() {
+		var lastNewLine = input.lastWasNewLine();
+		input.next();
+		if (input.peek() == '!') {
+			if (!lastNewLine) input.croak('Settings with "@!" need to start at the begining of a line');
+			return read_settings();
+		}
+		else {
+			return read_selector();
+		}
+	}
+	function read_selector() {
+		var output = read_while(function(ch){ return !is_whitespace(ch); });
+		return { type: 'selector', value: '@' + output };
+	}
+	function read_settings() {
+		var output = read_while(function(ch){ return ch != "\n" });
+		return { type: "setting", value: output };
+	}
+	function read_relative() {
+		return { type: 'relative' };
+	}
 	// Read comments that need to be added (#)
 	function read_comment() {
+		if (!input.lastWasNewLine()) input.croak('Comments with "#" need to start at the begining of a line');
 		var output = read_while(function(ch){ return ch != "\n" });
 		return { type: "comment", value: output };
 	}
@@ -251,7 +284,9 @@ function TokenStream(input) {
 			check_comment();
 			return read_next();
 		}
+		if (ch == "@") return selector_or_setting();
 		if (ch == '"') return read_string();
+		if (ch == "~") return read_relative();
 		if (is_digit(ch)) return read_number();
 		if (is_id_start(ch)) return read_ident();
 		if (is_punc(ch)) return {
@@ -432,7 +467,6 @@ function Parser(input) {
 			};
 			// Loop through it to add all of the arguments
 			while (!input.eof()) {
-				console.log(input.peek());
 				obj.value.push(input.next());
 
 				if (is_punc(';')) break;
@@ -464,6 +498,25 @@ function Parser(input) {
 			value: parse_expression()
 		};
 	}
+	function parse_execute() {
+		input.next();
+		var final = { type: 'execute', selector: '', pos: []};
+		var tokenCount = 0;
+		while (!input.eof()) {
+			if (tokenCount == 5){
+				break;
+			} else {
+				var expr = parse_expression();
+
+				if (tokenCount == 0) final.selector = expr;
+				else if (tokenCount > 0 && tokenCount < 4) final.pos.push(expr);
+				else if (tokenCount == 4) final.prog = expr;
+				tokenCount++;
+				if (tokenCount == 4 && !is_punc('{')) unexpected();
+			}
+		}
+		return final;
+	}
 	// Bool just checks if the value is "true"
 	function parse_bool() {
 		return {
@@ -476,6 +529,16 @@ function Parser(input) {
 		return {
 			type  : "comment",
 			value : input.next().value
+		};
+	}
+	function parse_setting() {
+		var setting = input.next().value.trim();
+		var indexSeparator = setting.indexOf(':');
+		if (indexSeparator == -1) input.croak('Expecting ":" separator');
+		return {
+			type: 'setting',
+			name: setting.substring(setting.indexOf('!') + 1, indexSeparator).trim(),
+			value: setting.substring(indexSeparator + 1).trim()
 		};
 	}
 	/* Parsing reg is complicated
@@ -520,6 +583,7 @@ function Parser(input) {
 			if (is_kw("true") || is_kw("false")) return parse_bool();
 			if (is_kw("for")) return parse_for();
 			if (is_kw("function")) return parse_function();
+			if (is_kw("execute")) return parse_execute();
 
 			// TODO: Parse Macro
 			if (is_kw("macro")) {
@@ -529,9 +593,10 @@ function Parser(input) {
 			if (is_kw("return")) return parse_return();
 			if (is_comment()) return parse_comment();
 			if (input.peek().type == 'reg') return parse_reg();
+			if (input.peek().type == 'setting') return parse_setting();
 
 			var tok = input.next();
-			if (tok.type == "ivar" || tok.type == "num" || tok.type == "str")
+			if (tok.type == 'relative' || tok.type == "selector" || tok.type == "ivar" || tok.type == "num" || tok.type == "str")
 			return tok;
 			unexpected();
 		});
@@ -544,7 +609,7 @@ function Parser(input) {
 
 			// Comments are special because they don't require a ; at the end, so we need to check that it's not a comment
 			if (is_comment()) prog.push(parse_comment());
-			else if (!input.eof() && (!input.last() || (input.last() && input.last().type != "comment"))) skip_punc(";");
+			else if (!input.eof() && (!input.last() || (input.last() && input.last().type != "comment" && input.last().type != "setting"))) skip_punc(";");
 		}
 		return { type: "prog", prog: prog };
 	}
@@ -566,25 +631,27 @@ function Parser(input) {
 
 // Input for now (too lazy to use a text file)
 
+/*
 var input = [
-	'# Comm',
-	'// Comment',
-	'# dwagkdwjak',
-	'var $hey = 1;',
-	'1 + 1;',
-	'return $hey;',
-	'say $hey Hello World;',
-	'macro hi ($hey) { say hey; return $hey; };',
-	'var $awdadwa = 10;',
-	'# yet another comment',
-	'function hello { };',
-	'var $awd1 = 10;',
-	'foo($a,$as);',
-	'var $heyyy = $hey + "test";',
-	'if ($hey) { } else if ($hey) { } else if ($hey) { } else { };',
-	'var $evaledString = "something `1 + 2` is a number";'
+'@setting: stuff'
+'# Comm',
+'// Comment',
+'# dwagkdwjak',
+'var $hey = 1;',
+'1 + 1;',
+'return $hey;',
+'say $hey Hello World;',
+'macro hi ($hey) { say hey; return $hey; };',
+'var $awdadwa = 10;',
+'# yet another comment',
+'function hello { };',
+'var $awd1 = 10;',
+'foo($a,$as);',
+'var $heyyy = $hey + "test";',
+'if ($hey) { } else if ($hey) { } else if ($hey) { } else { };',
+'var $evaledString = "something `1 + 2` is a number";'
 ].join('\n');
-
+*/
 
 // Tokenize the **** out of this
 var token = Parser(TokenStream(InputStream(input)));

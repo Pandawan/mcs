@@ -1,7 +1,7 @@
 // THIS IS THE GOAL FOR ~2.0's syntax!
 
 // Declare a namespace
-@namespace myNamespace
+@namespace: myNamespace
 
 // This is the root, it's not inside any group or function
 
