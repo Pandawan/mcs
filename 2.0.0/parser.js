@@ -703,7 +703,8 @@ var input = [
 	'$array[3]();',
 	'if ($hey < 5) {};',
 	'for (var $hey = 5; $hey < 5; $hey = $hey + 1) { };',
-	'foreach (var $hey in range(1,5)) {};'
+	'foreach (var $hey in range(1,5)) {};',
+	'var $selector = @a[score_hey=5];'
 ].join('\n');
 
 

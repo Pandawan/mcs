@@ -63,7 +63,7 @@ group myFolder {
 		// Or you can do the same thing with a foreach loop
 		foreach (var $j in range(0,3)) {
 			// This will say "Num 0", "Num 1", "Num 2", "Num3"
-			say Num $i;
+			say Num $j;
 		}
 
 		// Execute block (adds the execute prefix to any command inside its { } )
@@ -91,7 +91,7 @@ macro aMacro ($parameter1, $parameter2) {
 // A function to demonstrate macros
 function callAMacro {
 
-	var $selector = "@a[score_hello_min=1]";
+	var $selector = @a[score_hello_min=1];
 
 	// Call a macro and add its return value as a new line
 	var $hey = aMacro($selector, "John");
