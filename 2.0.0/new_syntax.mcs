@@ -55,7 +55,7 @@ group myFolder {
 		};
 
 		// For loops, from 0->3 inclusive
-		for(var $i = 0; $i < 4; $i++) {
+		for(var $i = 0; $i < 4; $i = $i + 1) {
 			// This will say "Num 0", "Num 1", "Num 2", "Num 3"
 			say Num $i;
 		};
