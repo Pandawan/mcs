@@ -25,10 +25,11 @@ V - macro calls (macro())
 V - macro
 V - basic functions
 V - @!settings like namespaces (only on new line)
-X - Arrays
+V - Arrays
 V - evaluation blocks
 V - execute blocks
 V - selector
+X - Macro calls work with ivars?!
 */
 
 // List of all commands that exist in mc
@@ -524,6 +525,35 @@ function Parser(input) {
 			value : input.next().value == "true"
 		};
 	}
+	// Parse an ivar and detect whether or not it's asking for an index of an array
+	function parse_ivar() {
+		var ivar = input.next();
+		console.log(input.peek());
+		if (is_punc("[")){
+			skip_punc("[");
+			while (!input.eof()) {
+				if (is_punc("]")) break;
+				if (input.peek().type == "kw") unexpected();
+				ivar.index = parse_expression();
+				if (is_punc("]")) break; else input.croak('Expecting punctuation: "]"');
+			}
+			skip_punc("]");
+		}
+		return ivar;
+	}
+	// Parsing an array declaration [5, "string", false]
+	function parse_array() {
+		return {
+			type: "array",
+			value: delimited("[", "]", ",", function custom_parser () {
+				var i = input.peek();
+				// Don't allow keywords such as function, var... inside an array declaration
+				// Macro is allowed to allow for variable functions (lambdas) ($fn = macro call () { something; })
+				if (i.type == "kw" && i.value != "false" && i.value != "true" && i.value != "macro") unexpected();
+				else return parse_expression();
+			})
+		};
+	}
 	// Parsing a comment as an actual comment
 	function parse_comment() {
 		return {
@@ -534,7 +564,7 @@ function Parser(input) {
 	function parse_setting() {
 		var setting = input.next().value.trim();
 		var indexSeparator = setting.indexOf(':');
-		if (indexSeparator == -1) input.croak('Expecting ":" separator');
+		if (indexSeparator == -1) input.croak('Expecting separator: ":"');
 		return {
 			type: 'setting',
 			name: setting.substring(setting.indexOf('!') + 1, indexSeparator).trim(),
@@ -578,6 +608,7 @@ function Parser(input) {
 				return exp;
 			}
 			if (is_punc("{")) return parse_prog();
+			if (is_punc("[")) return parse_array();
 			if (is_kw("if")) return parse_if();
 			if (is_kw("var")) return parse_var();
 			if (is_kw("true") || is_kw("false")) return parse_bool();
@@ -594,9 +625,10 @@ function Parser(input) {
 			if (is_comment()) return parse_comment();
 			if (input.peek().type == 'reg') return parse_reg();
 			if (input.peek().type == 'setting') return parse_setting();
+			if (input.peek().type == "ivar") return parse_ivar();
 
 			var tok = input.next();
-			if (tok.type == 'relative' || tok.type == "selector" || tok.type == "ivar" || tok.type == "num" || tok.type == "str")
+			if (tok.type == 'relative' || tok.type == "selector" || tok.type == "num" || tok.type == "str")
 			return tok;
 			unexpected();
 		});
@@ -631,27 +663,28 @@ function Parser(input) {
 
 // Input for now (too lazy to use a text file)
 
-/*
 var input = [
-'@setting: stuff'
-'# Comm',
-'// Comment',
-'# dwagkdwjak',
-'var $hey = 1;',
-'1 + 1;',
-'return $hey;',
-'say $hey Hello World;',
-'macro hi ($hey) { say hey; return $hey; };',
-'var $awdadwa = 10;',
-'# yet another comment',
-'function hello { };',
-'var $awd1 = 10;',
-'foo($a,$as);',
-'var $heyyy = $hey + "test";',
-'if ($hey) { } else if ($hey) { } else if ($hey) { } else { };',
-'var $evaledString = "something `1 + 2` is a number";'
+	'@setting: stuff'
+	'# Comm',
+	'// Comment',
+	'# dwagkdwjak',
+	'var $hey = 1;',
+	'1 + 1;',
+	'return $hey;',
+	'say $hey Hello World;',
+	'macro hi ($hey) { say hey; return $hey; };',
+	'var $awdadwa = 10;',
+	'# yet another comment',
+	'function hello { };',
+	'var $awd1 = 10;',
+	'foo($a,$as);',
+	'var $heyyy = $hey + "test";',
+	'if ($hey) { } else if ($hey) { } else if ($hey) { } else { };',
+	'var $evaledString = "something `1 + 2` is a number";',
+	'$array = [\"my_arr\", 5, false, macro hey () {}];',
+	' $array[1] = 7;',
+	'$array[3]();'
 ].join('\n');
-*/
 
 // Tokenize the **** out of this
 var token = Parser(TokenStream(InputStream(input)));
