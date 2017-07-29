@@ -16,20 +16,20 @@ V - # comments (only on new line)
 V - // comments
 V - variable assigning
 V - binary operations
-V - bools and strings
+V - numbers, bools and strings
 V - return
 V - basic commands
 V - if elseif else
-X - for loops
-V - macro calls (macro())
-V - macro
+V - for loops
+V - foreach loops (var [var name] in [macro call])
+V - macros + calls (macro())
 V - basic functions
 V - @!settings like namespaces (only on new line)
 V - Arrays
 V - evaluation blocks
 V - execute blocks
 V - selector
-X - Macro calls work with ivars?!
+V - Variable macros (lambdas)
 */
 
 // List of all commands that exist in mc
@@ -80,7 +80,7 @@ function InputStream(input) {
 function TokenStream(input) {
 	var current = null;
 	// List of all keywords that are available
-	var keywords = " function if elseif else return execute true false var for macro ";
+	var keywords = " function macro if elseif else return execute true false var for foreach in ";
 	var lastVal = null;
 	return {
 		next  : next,
@@ -433,18 +433,35 @@ function Parser(input) {
 		skip_kw("var");
 		return { type: 'var', value: parse_varname() };
 	}
-	// WIP - Parse a for loop
+	// Parse a for loop
 	function parse_for() {
-		input.croak("For loops are currently not supported");
+		//input.croak("For loops are currently not supported");
 		skip_kw("for");
 		var params = delimited("(", ")", ";", parse_expression);
 		var then = parse_expression();
-		var ret = {
+		return {
 			type: "for",
 			params: params,
 			then: then,
 		};
-		return ret;
+	}
+	// Parse a foreach loop
+	function parse_foreach() {
+		skip_kw("foreach");
+		skip_punc("(");
+		skip_kw("var");
+		var varName = parse_ivar();
+		skip_kw("in");
+		var param = parse_expression();
+		skip_punc(")");
+		var then = parse_expression();
+		return {
+			type: "foreach",
+			variable: varName,
+			param: param,
+			then: then
+		};
+
 	}
 	/* Parse a function
 	This can be taken in two ways:
@@ -528,7 +545,6 @@ function Parser(input) {
 	// Parse an ivar and detect whether or not it's asking for an index of an array
 	function parse_ivar() {
 		var ivar = input.next();
-		console.log(input.peek());
 		if (is_punc("[")){
 			skip_punc("[");
 			while (!input.eof()) {
@@ -613,6 +629,7 @@ function Parser(input) {
 			if (is_kw("var")) return parse_var();
 			if (is_kw("true") || is_kw("false")) return parse_bool();
 			if (is_kw("for")) return parse_for();
+			if (is_kw("foreach")) return parse_foreach();
 			if (is_kw("function")) return parse_function();
 			if (is_kw("execute")) return parse_execute();
 
@@ -664,7 +681,7 @@ function Parser(input) {
 // Input for now (too lazy to use a text file)
 
 var input = [
-	'@setting: stuff'
+	'@!setting: stuff',
 	'# Comm',
 	'// Comment',
 	'# dwagkdwjak',
@@ -683,8 +700,12 @@ var input = [
 	'var $evaledString = "something `1 + 2` is a number";',
 	'$array = [\"my_arr\", 5, false, macro hey () {}];',
 	' $array[1] = 7;',
-	'$array[3]();'
+	'$array[3]();',
+	'if ($hey < 5) {};',
+	'for (var $hey = 5; $hey < 5; $hey = $hey + 1) { };',
+	'foreach (var $hey in range(1,5)) {};'
 ].join('\n');
+
 
 // Tokenize the **** out of this
 var token = Parser(TokenStream(InputStream(input)));
