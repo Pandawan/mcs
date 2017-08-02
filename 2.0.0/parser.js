@@ -626,86 +626,84 @@ function Parser(input) {
 				input.next();
 				while (!input.eof()) {
 				json.value += input.next().value;
-				if (is_punc('} ')) break;
+				if (is_punc('} ')) break;}
+				final.value.push(json); }
+				*/
+
+				if (is_punc(';')) break;
+				else if (input.eof()) skip_punc(';');
 			}
-			final.value.push(json);
+			return final;
+		} else {
+			return input.next();
+			//unexpected();
 		}
-		*/
-
-		if (is_punc(';')) break;
-		else if (input.eof()) skip_punc(';');
 	}
-	return final;
-} else {
-	return input.next();
-	//unexpected();
-}
-}
-function maybe_call(expr) {
-	expr = expr();
-	return is_punc("(") ? parse_call(expr) : expr;
-}
-// Major parser, checks what the token is an tells it to how to parse it
-function parse_atom() {
-	return maybe_call(function(){
-		if (is_punc("(")) {
-			input.next();
-			var exp = parse_expression();
-			skip_punc(")");
-			return exp;
+	function maybe_call(expr) {
+		expr = expr();
+		return is_punc("(") ? parse_call(expr) : expr;
+	}
+	// Major parser, checks what the token is an tells it to how to parse it
+	function parse_atom() {
+		return maybe_call(function(){
+			if (is_punc("(")) {
+				input.next();
+				var exp = parse_expression();
+				skip_punc(")");
+				return exp;
+			}
+			if (is_punc("{")) return parse_prog();
+			if (is_punc("[")) return parse_array();
+			if (is_kw("if")) return parse_if();
+			if (is_kw("var")) return parse_var();
+			if (is_kw("true") || is_kw("false")) return parse_bool();
+			if (is_kw("for")) return parse_for();
+			if (is_kw("foreach")) return parse_foreach();
+			if (is_kw("function")) return parse_function();
+			if (is_kw("group")) return parse_group();
+			if (is_kw("execute")) return parse_execute();
+			if (is_kw("macro")) return parse_macro();
+
+			if (is_kw("return")) return parse_return();
+			if (is_comment()) return parse_comment();
+			if (input.peek().type == 'reg') return parse_reg();
+			if (input.peek().type == 'setting') return parse_setting();
+			if (input.peek().type == "ivar") return parse_ivar();
+
+			var tok = input.next();
+			if (tok.type == 'colon' || tok.type == 'relative' || tok.type == "selector" || tok.type == "num" || tok.type == "str")
+			return tok;
+			unexpected();
+		});
+	}
+	// Utility to check whether or not the last one was a comment or a setting (use it to prevent requirement of semicolon)
+	function check_last() {
+		return (!input.last() || (input.last() && input.last().type != "comment" && input.last().type != "setting"));
+	}
+	// Parsing a program/top level
+	function parse_toplevel() {
+		var prog = [];
+		while (!input.eof()) {
+			prog.push(parse_expression());
+			// Comments are special because they don't require a ; at the end, so we need to check that it's not a comment
+			if (is_comment()) {  prog.push(parse_comment()); }
+			else if (!input.eof() && check_last()) skip_punc(";");
 		}
-		if (is_punc("{")) return parse_prog();
-		if (is_punc("[")) return parse_array();
-		if (is_kw("if")) return parse_if();
-		if (is_kw("var")) return parse_var();
-		if (is_kw("true") || is_kw("false")) return parse_bool();
-		if (is_kw("for")) return parse_for();
-		if (is_kw("foreach")) return parse_foreach();
-		if (is_kw("function")) return parse_function();
-		if (is_kw("group")) return parse_group();
-		if (is_kw("execute")) return parse_execute();
-		if (is_kw("macro")) return parse_macro();
-
-		if (is_kw("return")) return parse_return();
-		if (is_comment()) return parse_comment();
-		if (input.peek().type == 'reg') return parse_reg();
-		if (input.peek().type == 'setting') return parse_setting();
-		if (input.peek().type == "ivar") return parse_ivar();
-
-		var tok = input.next();
-		if (tok.type == 'colon' || tok.type == 'relative' || tok.type == "selector" || tok.type == "num" || tok.type == "str")
-		return tok;
-		unexpected();
-	});
-}
-// Utility to check whether or not the last one was a comment or a setting (use it to prevent requirement of semicolon)
-function check_last() {
-	return (!input.last() || (input.last() && input.last().type != "comment" && input.last().type != "setting"));
-}
-// Parsing a program/top level
-function parse_toplevel() {
-	var prog = [];
-	while (!input.eof()) {
-		prog.push(parse_expression());
-		// Comments are special because they don't require a ; at the end, so we need to check that it's not a comment
-		if (is_comment()) {  prog.push(parse_comment()); }
-		else if (!input.eof() && check_last()) skip_punc(";");
+		return { type: "prog", prog: prog };
 	}
-	return { type: "prog", prog: prog };
-}
-// Parse through a full program
-function parse_prog() {
-	var prog = delimited("{", "}", ";", parse_expression);
-	if (prog.length == 0) return FALSE;
-	if (prog.length == 1) return prog[0];
-	return { type: "prog", prog: prog };
-}
-// Parse through everything, parse binary and calls just in case
-function parse_expression() {
-	return maybe_call(function(){
-		return maybe_binary(parse_atom(), 0);
-	});
-}
+	// Parse through a full program
+	function parse_prog() {
+		var prog = delimited("{", "}", ";", parse_expression);
+		if (prog.length == 0) return FALSE;
+		if (prog.length == 1) return prog[0];
+		return { type: "prog", prog: prog };
+	}
+	// Parse through everything, parse binary and calls just in case
+	function parse_expression() {
+		return maybe_call(function(){
+			return maybe_binary(parse_atom(), 0);
+		});
+	}
 }
 
 
@@ -741,8 +739,6 @@ var token = Parser(TokenStream(InputStream(input)));
 console.log(JSON.stringify(token, null, '\t'));
 
 */
-
-
 
 
 // Finally using a text file
