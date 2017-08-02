@@ -49,7 +49,7 @@ function InputStream(input) {
 	function next() {
 		// Knows whether or not we switched to a new line
 		if (peek() == "\n") lastWasNewLineVal = true;
-		else lastWasNewLineVal = false;
+		else if ("\r\t ".indexOf(peek()) == -1) lastWasNewLineVal = false;
 		// Get the last character
 		lastVal = peek();
 
@@ -80,7 +80,7 @@ function InputStream(input) {
 function TokenStream(input) {
 	var current = null;
 	// List of all keywords that are available
-	var keywords = " function macro if elseif else return execute true false var for foreach in ";
+	var keywords = " function macro group if elseif else return execute true false var for foreach in ";
 	var lastVal = null;
 	return {
 		next  : next,
@@ -111,7 +111,7 @@ function TokenStream(input) {
 		return ",;(){}[]".indexOf(ch) >= 0;
 	}
 	function is_whitespace(ch) {
-		return " \t\n".indexOf(ch) >= 0;
+		return " \t\n\r".indexOf(ch) >= 0;
 	}
 	// Read until the given predicate returns false
 	function read_while(predicate) {
@@ -184,7 +184,6 @@ function TokenStream(input) {
 						eval = false;
 						// Parse the whole thing as if it was a full code block
 						var parsedEval = Parser(TokenStream(InputStream(str)));
-						console.log(parsedEval);
 						if (parsedEval.prog.length != 0) {
 							for (var x = 0; x < parsedEval.prog.length; x++) {
 								if (parsedEval.prog[x].type == "comment") {
@@ -243,15 +242,21 @@ function TokenStream(input) {
 		}
 	}
 	function read_selector() {
-		var output = read_while(function(ch){ return !is_whitespace(ch); });
+		var output = read_while(function(ch){ return (!is_whitespace(ch) && ch != ';') });
+
 		return { type: 'selector', value: '@' + output };
 	}
 	function read_settings() {
 		var output = read_while(function(ch){ return ch != "\n" });
-		return { type: "setting", value: output };
+		return { type: "setting", value: output.replace('\r', '') };
 	}
 	function read_relative() {
+		input.next();
 		return { type: 'relative' };
+	}
+	function read_colon() {
+		input.next();
+		return { type: 'colon' };
 	}
 	// Read comments that need to be added (#)
 	function read_comment() {
@@ -288,6 +293,7 @@ function TokenStream(input) {
 		if (ch == "@") return selector_or_setting();
 		if (ch == '"') return read_string();
 		if (ch == "~") return read_relative();
+		if (ch == ":") return read_colon();
 		if (is_digit(ch)) return read_number();
 		if (is_id_start(ch)) return read_ident();
 		if (is_punc(ch)) return {
@@ -392,7 +398,7 @@ function Parser(input) {
 		skip_punc(start);
 		while (!input.eof()) {
 			if (is_punc(stop)) break;
-			if (first) first = false; else skip_punc(separator);
+			if (first) first = false; else if (check_last()) skip_punc(separator);
 			if (is_punc(stop)) break;
 			a.push(parser());
 		}
@@ -474,13 +480,14 @@ function Parser(input) {
 		// Skip the function keyword
 		input.next();
 		// Get the name of the function
-		var name = input.next().value;
+		var name = input.next();
 		// Check if what's afterwards is a call
-		if (is_punc(';') || is_reg()) {
+		if (input.peek().type == 'colon') {
 			var obj = {
 				type: "command",
 				value: [
-					{ type: "reg", value: "function" }
+					{ type: "reg", value: "function" },
+					name
 				]
 			};
 			// Loop through it to add all of the arguments
@@ -492,15 +499,27 @@ function Parser(input) {
 			}
 			return obj;
 		}
-		// It's not a call to a function, parse it as a normal function
+		else {
+			// It's not a call to a function, parse it as a normal function
+			return {
+				type: "function",
+				name: name.value,
+				body: parse_expression()
+			};
+		}
+	}
+	// Parsing a group (sub namespaces/folders)
+	function parse_group() {
+		input.next();
 		return {
-			type: "function",
-			name: name,
+			type: "group",
+			name: input.next().value,
 			body: parse_expression()
 		};
 	}
 	// Parse a macro, basically a function with parameters
 	function parse_macro() {
+		input.next();
 		return {
 			type: "macro",
 			name: input.next().value,
@@ -525,7 +544,6 @@ function Parser(input) {
 				break;
 			} else {
 				var expr = parse_expression();
-
 				if (tokenCount == 0) final.selector = expr;
 				else if (tokenCount > 0 && tokenCount < 4) final.pos.push(expr);
 				else if (tokenCount == 4) final.prog = expr;
@@ -593,123 +611,148 @@ function Parser(input) {
 	Sometimes, it's the name of a macro or other function calling, if so return the exact token
 	If it's neither of those, then it's unexpected
 	*/
+	var lala;
 	function parse_reg() {
 		// Regs are commands and command arguments
 		var final = { type: "command", value: [] };
 		if (availableCommands.includes(input.peek().value)) {
-
 			while (!input.eof()) {
 				final.value.push(input.next());
 
-				if (is_punc(';')) break;
-				else if (input.eof()) skip_punc(';');
-			}
-			return final;
-		} else {
-			return input.next();
-			//unexpected();
-		}
-	}
-	function maybe_call(expr) {
-		expr = expr();
-		return is_punc("(") ? parse_call(expr) : expr;
-	}
-	// Major parser, checks what the token is an tells it to how to parse it
-	function parse_atom() {
-		return maybe_call(function(){
-			if (is_punc("(")) {
+				// Need to parse JSON
+				/*
+				if(is_punc('{')) {
+				var json = { type: "json", value: ''};
 				input.next();
-				var exp = parse_expression();
-				skip_punc(")");
-				return exp;
+				while (!input.eof()) {
+				json.value += input.next().value;
+				if (is_punc('} ')) break;
 			}
-			if (is_punc("{")) return parse_prog();
-			if (is_punc("[")) return parse_array();
-			if (is_kw("if")) return parse_if();
-			if (is_kw("var")) return parse_var();
-			if (is_kw("true") || is_kw("false")) return parse_bool();
-			if (is_kw("for")) return parse_for();
-			if (is_kw("foreach")) return parse_foreach();
-			if (is_kw("function")) return parse_function();
-			if (is_kw("execute")) return parse_execute();
-
-			// TODO: Parse Macro
-			if (is_kw("macro")) {
-				input.next();
-				return parse_macro();
-			}
-			if (is_kw("return")) return parse_return();
-			if (is_comment()) return parse_comment();
-			if (input.peek().type == 'reg') return parse_reg();
-			if (input.peek().type == 'setting') return parse_setting();
-			if (input.peek().type == "ivar") return parse_ivar();
-
-			var tok = input.next();
-			if (tok.type == 'relative' || tok.type == "selector" || tok.type == "num" || tok.type == "str")
-			return tok;
-			unexpected();
-		});
-	}
-	// Parsing a program/top level
-	function parse_toplevel() {
-		var prog = [];
-		while (!input.eof()) {
-			prog.push(parse_expression());
-
-			// Comments are special because they don't require a ; at the end, so we need to check that it's not a comment
-			if (is_comment()) prog.push(parse_comment());
-			else if (!input.eof() && (!input.last() || (input.last() && input.last().type != "comment" && input.last().type != "setting"))) skip_punc(";");
+			final.value.push(json);
 		}
-		return { type: "prog", prog: prog };
+		*/
+
+		if (is_punc(';')) break;
+		else if (input.eof()) skip_punc(';');
 	}
-	// Parse through a full program
-	function parse_prog() {
-		var prog = delimited("{", "}", ";", parse_expression);
-		if (prog.length == 0) return FALSE;
-		if (prog.length == 1) return prog[0];
-		return { type: "prog", prog: prog };
+	return final;
+} else {
+	return input.next();
+	//unexpected();
+}
+}
+function maybe_call(expr) {
+	expr = expr();
+	return is_punc("(") ? parse_call(expr) : expr;
+}
+// Major parser, checks what the token is an tells it to how to parse it
+function parse_atom() {
+	return maybe_call(function(){
+		if (is_punc("(")) {
+			input.next();
+			var exp = parse_expression();
+			skip_punc(")");
+			return exp;
+		}
+		if (is_punc("{")) return parse_prog();
+		if (is_punc("[")) return parse_array();
+		if (is_kw("if")) return parse_if();
+		if (is_kw("var")) return parse_var();
+		if (is_kw("true") || is_kw("false")) return parse_bool();
+		if (is_kw("for")) return parse_for();
+		if (is_kw("foreach")) return parse_foreach();
+		if (is_kw("function")) return parse_function();
+		if (is_kw("group")) return parse_group();
+		if (is_kw("execute")) return parse_execute();
+		if (is_kw("macro")) return parse_macro();
+
+		if (is_kw("return")) return parse_return();
+		if (is_comment()) return parse_comment();
+		if (input.peek().type == 'reg') return parse_reg();
+		if (input.peek().type == 'setting') return parse_setting();
+		if (input.peek().type == "ivar") return parse_ivar();
+
+		var tok = input.next();
+		if (tok.type == 'colon' || tok.type == 'relative' || tok.type == "selector" || tok.type == "num" || tok.type == "str")
+		return tok;
+		unexpected();
+	});
+}
+// Utility to check whether or not the last one was a comment or a setting (use it to prevent requirement of semicolon)
+function check_last() {
+	return (!input.last() || (input.last() && input.last().type != "comment" && input.last().type != "setting"));
+}
+// Parsing a program/top level
+function parse_toplevel() {
+	var prog = [];
+	while (!input.eof()) {
+		prog.push(parse_expression());
+		// Comments are special because they don't require a ; at the end, so we need to check that it's not a comment
+		if (is_comment()) {  prog.push(parse_comment()); }
+		else if (!input.eof() && check_last()) skip_punc(";");
 	}
-	// Parse through everything, parse binary and calls just in case
-	function parse_expression() {
-		return maybe_call(function(){
-			return maybe_binary(parse_atom(), 0);
-		});
-	}
+	return { type: "prog", prog: prog };
+}
+// Parse through a full program
+function parse_prog() {
+	var prog = delimited("{", "}", ";", parse_expression);
+	if (prog.length == 0) return FALSE;
+	if (prog.length == 1) return prog[0];
+	return { type: "prog", prog: prog };
+}
+// Parse through everything, parse binary and calls just in case
+function parse_expression() {
+	return maybe_call(function(){
+		return maybe_binary(parse_atom(), 0);
+	});
+}
 }
 
 
 // Input for now (too lazy to use a text file)
-
+/*
 var input = [
-	'@!setting: stuff',
-	'# Comm',
-	'// Comment',
-	'# dwagkdwjak',
-	'var $hey = 1;',
-	'1 + 1;',
-	'return $hey;',
-	'say $hey Hello World;',
-	'macro hi ($hey) { say hey; return $hey; };',
-	'var $awdadwa = 10;',
-	'# yet another comment',
-	'function hello { };',
-	'var $awd1 = 10;',
-	'foo($a,$as);',
-	'var $heyyy = $hey + "test";',
-	'if ($hey) { } else if ($hey) { } else if ($hey) { } else { };',
-	'var $evaledString = "something `1 + 2` is a number";',
-	'$array = [\"my_arr\", 5, false, macro hey () {}];',
-	' $array[1] = 7;',
-	'$array[3]();',
-	'if ($hey < 5) {};',
-	'for (var $hey = 5; $hey < 5; $hey = $hey + 1) { };',
-	'foreach (var $hey in range(1,5)) {};',
-	'var $selector = @a[score_hey=5];'
+'@!setting: stuff',
+'# Parsed Comment',
+'// Unparsed Comment',
+'var $basicVar = 1;',
+'1 + 1;',
+'return $basicVar;',
+'say $hey Hello World;',
+'macro hi ($hey) { say hey; return $hey; };',
+'function hello { };',
+'foo($a,$as);',
+'var $heyyy = $hey + "test";',
+'if ($hey) { } else if ($hey) { } else if ($hey) { } else { };',
+'var $evaledString = "something `1 + 2` is a number";',
+'$array = [\"my_arr\", 5, false, macro hey () {}];',
+'$array[1] = 7;',
+'$array[3]();',
+'if ($hey < 5) {};',
+'for (var $hey = 5; $hey < 5; $hey = $hey + 1) { };',
+'foreach (var $hey in range(1,5)) {};',
+'var $selector = @a[score_hey=5];'
 ].join('\n');
-
 
 // Tokenize the **** out of this
 var token = Parser(TokenStream(InputStream(input)));
 
 // What did we get? Also, its pretty!
 console.log(JSON.stringify(token, null, '\t'));
+
+*/
+
+
+
+
+// Finally using a text file
+const fs = require('fs');
+const path = require('path');
+fs.readFile(path.join(__dirname, 'new_syntax.mcs'), 'utf8', (err, data) => {
+	if (err) throw err;
+	var token = Parser(TokenStream(InputStream(data)));
+	fs.writeFile(path.join(__dirname, 'output.json'), JSON.stringify(token, null, '\t'), (err) => {
+		if (err) throw err;
+		console.log('Success!');
+	});
+});
