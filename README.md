@@ -1,5 +1,3 @@
-
-
 # mcs: Minecraft Script
 
 [![npm](https://img.shields.io/npm/v/mcs.svg?style=flat-square)](https://www.npmjs.com/package/mcs)
@@ -45,12 +43,12 @@ Add to your html
 
 ### Or include it manually
 
-Download [mcs.js](https://github.com/PandawanFr/mcs/blob/master/mcs.js)
+Download [mcs.min.js](https://github.com/PandawanFr/mcs/blob/master/mcs.min.js)
 
 Add to your html
 
 ```html
-<script src="path/to/mcs.js"></script>
+<script src="path/to/mcs.min.js"></script>
 ```
 
 # Usage
@@ -78,17 +76,18 @@ Check out the current todo list [here](https://github.com/PandawanFr/mcs/blob/ma
 2. [Fork it](https://github.com/PandawanFr/mcs/fork)
 3. Checkout this repository
 4. Install the dependencies `npm install` or `yarn`
-5. Test your changes with
+5. Edit the files in `/src`
+6. Test your changes with
 ```shell
+$ npm run build
 $ node index.js [input] [output]
 or
-$ npm test
+$ npm run bnt
+
 edit /test/input.mcs and check output at /test/output/
 ```
-6. You can also test your changes on the web with
-- Copy the `mcs.js` file to `./test/web`
-- Open the `index.html` file
-7. Once done, create a pull request
+7. You can also test your changes on the web by copying the `dist/mcs.min.js` file
+8. Once done, create a pull request
 
 # Authors
 Made by [Pandawan](http://twitter.com/PandawanYT)
