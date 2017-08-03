@@ -4,9 +4,10 @@
 	"description": "A Minecraft Scripting language which converts to functions",
 	"main": "mcs.js",
 	"scripts": {
-		"test": "node index.js ./test/new_syntax.mcs ./test/",
+		"test": "node index.js ./test/input.mcs ./test/output/",
 		"build": "gulp build-all",
-		"bnt": "npm run build && npm test"
+		"bnt": "npm run build && npm test",
+		"watch": "gulp"
 	},
 	"keywords": [
 		"Minecraft",

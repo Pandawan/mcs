@@ -421,7 +421,7 @@ function Parser(input) {
 	// Parse if statements, add elseif if there are some, and add else if there is one
 	function parse_if() {
 		skip_kw("if");
-		var cond = delimited("(", ")", ",", parse_expression);
+		var cond = parse_expression();
 		var then = parse_expression();
 		var ret = {
 			type: "if",
@@ -616,8 +616,10 @@ function Parser(input) {
 		// Regs are commands and command arguments
 		var final = { type: "command", value: [] };
 		if (availableCommands.includes(input.peek().value)) {
+			final.value.push(input.next());
 			while (!input.eof()) {
-				final.value.push(input.next());
+				var next = parse_expression();
+				final.value.push(next);
 
 				// Need to parse JSON
 				/*

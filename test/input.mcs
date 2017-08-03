@@ -1,100 +1,45 @@
-// THIS IS THE GOAL FOR ~2.0's syntax!
-
-// Declare a namespace
-@!namespace: myNamespace
-
-// This is the root, it's not inside any group or function
-
-// Groups are used to create folders in the path (namespace:group/function)
-group myFolder {
-
-	// Functions get separated into files, this would be myFunction.mcfunction
-	function myFunction {
-
-		// Unparsed comments (get removed) can be anywhere
-		# Parsed comments (get added to final function file) cannot be in root
-
-		// Normal minecraft commands
-		say hello world;
-
-		// Variables (contains a string)
-		var $stringVar = "a string var";
-
-		// Variable with a number
-		var $numberVar = 3.1415;
-
-		// Variable with a boolean
-		var $boolVar = true;
-
-		// Variable with arrays (of any type)
-		var $arrVar = [15, "test", false];
-
-		// Arrays can be accessed like so
-		$arrVar[1]; // Returns "test" (index starts at 0)
-
-		// Use a variable or constant by preceding its name with $
-		$stringVar = "another string";
-
-		// You can use a variable anywhere
-		tellraw @a {"text":$stringVar};
-
-		// If statements
-		if ($numberVar < 4) {
-			say Number is less than 4;
-		}
-		// Else if statements
-		else if ($numberVar == 4) {
-		    say Number is equal to 4;
-		}
-		// Else
-		else {
-		   say Number is greater than 4;
-		};
-
-		// For loops, from 0->3 inclusive
-		for(var $i = 0; $i < 4; $i = $i + 1) {
-			// This will say "Num 0", "Num 1", "Num 2", "Num 3"
-			say Num $i;
-		};
-
-		// Or you can do the same thing with a foreach loop
-		foreach (var $j in range(0,3)) {
-			// This will say "Num 0", "Num 1", "Num 2", "Num3"
-			say Num $j;
-		};
-
-		// Execute block (adds the execute prefix to any command inside its { } )
-		execute @a ~ ~ ~ {
-			// Will become "execute @a ~ ~ ~ say Hello World"
-			say Hello World;
-		};
-
-		// Calling another function (just like you would with commands)
-		function myNamespace:callAMacro if @a[score_hello=1];
-	};
-};
+// This is a testing file
 
 // Macros allow you to write similar commands more quickly
-macro aMacro ($parameter1, $parameter2) {
+macro aMacro ($parametery) {
 
-	// This will prepend normal commands in the line before the call to "aMacro()"
-	tellraw $parameter1 {"text":"Hello, my name is `$parameter2`."};
-
+	if ($parametery == 5){
+		return 10;
+	};
+	gamerule HAHAHAI;
 
 	// This is the value that will replace any call to "aMacro()"
-	return 5;
+	return 5 + $parametery;
 };
+function haiii {
 
-// A function to demonstrate macros
-function callAMacro {
+	// Variables (contains a string)
+	var $stringVar = "a string var";
 
-	var $selector = @a[score_hello_min=1];
+	// Variable with a number
+	var $numberVar = 3.1415;
 
-	// Call a macro and add its return value as a new line
-	var $hey = aMacro($selector, "John");
+	if ($numberVar < 4) {
+		say hey;
+		var $something = 5;
+		say $something;
 
-	// This will compile into
-	tellraw @a[score_hello_min=1] {"text":"Hello, my name is John."}
-	var $hey = 5;
+		if ($something == 5) {
+			say $something is 5;
+		};
+	};
 
-};
+	// Variable with a boolean
+	var $boolVar = true;
+
+	say $boolVar;
+
+	say aMacro(5);
+
+	var $arrVar = [15, "test", false];
+
+	say $arrVar[0];
+
+	$stringVar = "another string";
+
+}

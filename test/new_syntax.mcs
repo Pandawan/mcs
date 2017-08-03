@@ -32,7 +32,7 @@ group myFolder {
 		// Arrays can be accessed like so
 		$arrVar[1]; // Returns "test" (index starts at 0)
 
-		// Use a variable or constant by preceding its name with $
+		// Use a variable by preceding its name with $
 		$stringVar = "another string";
 
 		// You can use a variable anywhere

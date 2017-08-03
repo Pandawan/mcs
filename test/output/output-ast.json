@@ -1,0 +1,143 @@
+{
+	"type": "prog",
+	"prog": [
+		{
+			"type": "assign",
+			"operator": "=",
+			"left": {
+				"type": "var",
+				"value": "$stringVar"
+			},
+			"right": {
+				"type": "str",
+				"value": "a string var"
+			}
+		},
+		{
+			"type": "assign",
+			"operator": "=",
+			"left": {
+				"type": "var",
+				"value": "$numberVar"
+			},
+			"right": {
+				"type": "num",
+				"value": 3.1415
+			}
+		},
+		{
+			"type": "assign",
+			"operator": "=",
+			"left": {
+				"type": "var",
+				"value": "$boolVar"
+			},
+			"right": {
+				"type": "bool",
+				"value": true
+			}
+		},
+		{
+			"type": "command",
+			"value": [
+				{
+					"type": "reg",
+					"value": "say"
+				},
+				{
+					"type": "ivar",
+					"value": "$boolVar"
+				}
+			]
+		},
+		{
+			"type": "command",
+			"value": [
+				{
+					"type": "reg",
+					"value": "say"
+				},
+				{
+					"type": "reg",
+					"value": "aMacro"
+				},
+				{
+					"type": "punc",
+					"value": "("
+				},
+				{
+					"type": "punc",
+					"value": ")"
+				}
+			]
+		},
+		{
+			"type": "assign",
+			"operator": "=",
+			"left": {
+				"type": "var",
+				"value": "$arrVar"
+			},
+			"right": {
+				"type": "array",
+				"value": [
+					{
+						"type": "num",
+						"value": 15
+					},
+					{
+						"type": "str",
+						"value": "test"
+					},
+					{
+						"type": "bool",
+						"value": false
+					}
+				]
+			}
+		},
+		{
+			"type": "ivar",
+			"value": "$arrVar",
+			"index": {
+				"type": "num",
+				"value": 1
+			}
+		},
+		{
+			"type": "assign",
+			"operator": "=",
+			"left": {
+				"type": "ivar",
+				"value": "$stringVar"
+			},
+			"right": {
+				"type": "str",
+				"value": "another string"
+			}
+		},
+		{
+			"type": "macro",
+			"name": "aMacro",
+			"vars": [
+				"$parametery",
+				"$parameterx"
+			],
+			"body": {
+				"type": "return",
+				"value": {
+					"type": "binary",
+					"operator": "+",
+					"left": {
+						"type": "num",
+						"value": 5
+					},
+					"right": {
+						"type": "ivar",
+						"value": "$parametery"
+					}
+				}
+			}
+		}
+	]
+}

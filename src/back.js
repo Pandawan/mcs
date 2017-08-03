@@ -1,5 +1,12 @@
 /* This will appear at the bottom/end of the final dist file */
-			var output = Parser(TokenStream(InputStream(input)));
+
+			// Get the abstract syntax tree from the input
+			var ast = Parser(TokenStream(InputStream(input)));
+
+
+			// Evaluate and Compile
+			var output = Compiler(ast);
+
 			return output;
 		};
 
