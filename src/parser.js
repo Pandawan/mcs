@@ -172,16 +172,16 @@ function TokenStream(input) {
 		// Don't do it if it doesn't need evaluation
 		if (val.indexOf("`") >= 0){
 
-			var eval = false, final = [], str = "";
+			var evalBlock = false, final = [], str = "";
 			var arr = val.split('');
 
 			for (var i = 0; i < arr.length; i++) {
 				var ch = arr[i];
 
 				// Currently in an eval block
-				if (eval) {
+				if (evalBlock) {
 					if (ch == '`'){
-						eval = false;
+						evalBlock = false;
 						// Parse the whole thing as if it was a full code block
 						var parsedEval = Parser(TokenStream(InputStream(str)));
 						if (parsedEval.prog.length != 0) {
@@ -207,10 +207,10 @@ function TokenStream(input) {
 						}
 					}
 				}
-				// Don't eval
+				// Don't evalBlock
 				else {
 					if (ch == '`'){
-						eval = true;
+						evalBlock = true;
 						if (str) final.push({ type: "str", value: str });
 						str = "";
 					}
@@ -705,50 +705,3 @@ function Parser(input) {
 		});
 	}
 }
-
-
-// Input for now (too lazy to use a text file)
-/*
-var input = [
-'@!setting: stuff',
-'# Parsed Comment',
-'// Unparsed Comment',
-'var $basicVar = 1;',
-'1 + 1;',
-'return $basicVar;',
-'say $hey Hello World;',
-'macro hi ($hey) { say hey; return $hey; };',
-'function hello { };',
-'foo($a,$as);',
-'var $heyyy = $hey + "test";',
-'if ($hey) { } else if ($hey) { } else if ($hey) { } else { };',
-'var $evaledString = "something `1 + 2` is a number";',
-'$array = [\"my_arr\", 5, false, macro hey () {}];',
-'$array[1] = 7;',
-'$array[3]();',
-'if ($hey < 5) {};',
-'for (var $hey = 5; $hey < 5; $hey = $hey + 1) { };',
-'foreach (var $hey in range(1,5)) {};',
-'var $selector = @a[score_hey=5];'
-].join('\n');
-
-// Tokenize the **** out of this
-var token = Parser(TokenStream(InputStream(input)));
-
-// What did we get? Also, its pretty!
-console.log(JSON.stringify(token, null, '\t'));
-
-*/
-
-
-// Finally using a text file
-const fs = require('fs');
-const path = require('path');
-fs.readFile(path.join(__dirname, 'new_syntax.mcs'), 'utf8', (err, data) => {
-	if (err) throw err;
-	var token = Parser(TokenStream(InputStream(data)));
-	fs.writeFile(path.join(__dirname, 'output.json'), JSON.stringify(token, null, '\t'), (err) => {
-		if (err) throw err;
-		console.log('Success!');
-	});
-});

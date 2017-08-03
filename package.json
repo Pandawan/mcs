@@ -1,10 +1,12 @@
 {
 	"name": "mcs",
-	"version": "1.0.3",
+	"version": "2.0.0",
 	"description": "A Minecraft Scripting language which converts to functions",
 	"main": "mcs.js",
 	"scripts": {
-		"test": "node index.js ./test/input/file.mcs ./test/output/"
+		"test": "node index.js ./test/new_syntax.mcs ./test/",
+		"build": "gulp build-all",
+		"bnt": "npm run build && npm test"
 	},
 	"keywords": [
 		"Minecraft",
@@ -25,5 +27,16 @@
 	},
 	"bin": {
 		"mcs": "./index.js"
+	},
+	"devDependencies": {
+		"babel-preset-es2015": "^6.24.1",
+		"gulp": "^3.9.1",
+		"gulp-babel": "^6.1.2",
+		"gulp-concat": "^2.6.1",
+		"gulp-jsbeautifier": "^2.1.1",
+		"gulp-order": "^1.1.1",
+		"gulp-rename": "^1.2.2",
+		"gulp-uglify": "^3.0.0",
+		"pump": "^1.0.2"
 	}
 }

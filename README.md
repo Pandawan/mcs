@@ -26,7 +26,7 @@ Installation via `npm`:
 $ npm install mcs
 
 > var mcs = require('mcs');
-> mcs('function hello {\n say hello world \n}');
+> mcs('function hello {\n say hello world; \n}');
 ```
 Alternatively you can install mcs globally so that it may be run from the command line.
 
@@ -70,19 +70,8 @@ $ mcs [input] [output (optional)]
 ```
 Using `mcs` in the CLI takes one require argument, the `input` file (.mcs file), and outputs to the (optional) `output` directory. If no output directory is given, `./` is used.
 
-
-## TODO
-For 2.0.0
-- [ ] Add If/Unless code blocks
-- [ ] Separate statements with `{ } ;` (punctuation) rather than newlines
-- [ ] Add For loops (If possible)
-- [ ] Add function parameters (scoreboards)
-- [ ] Add data pack and namespace support
-- [ ] Use Regexp to parse data
-- [ ] Allow different coding styles (no space before {}...)
-- [ ] Clean up Code (refractor and separate lexer, parser and mcs)
-- [ ] Rewrite mcs.js with more optimization and better style
-
+# TODO
+Check out the current todo list [here](https://github.com/PandawanFr/mcs/blob/master/todo.md).
 
 # Contributing
 1. Create an issue and describe your idea
@@ -94,7 +83,7 @@ For 2.0.0
 $ node index.js [input] [output]
 or
 $ npm test
-edit /test/input/file.mcs and check output at /test/output/
+edit /test/input.mcs and check output at /test/output/
 ```
 6. You can also test your changes on the web with
 - Copy the `mcs.js` file to `./test/web`

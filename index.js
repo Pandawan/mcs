@@ -2,10 +2,9 @@
 
 const fs = require("fs");
 const path = require("path");
-const mcs = require("./mcs");
+const mcs = require("./dist/mcs");
 const chalk = require('chalk');
 const pkginfo = require('pkginfo')(module);
-
 
 let input = '';
 let outputDir = './';
@@ -14,7 +13,7 @@ let curDir = path.normalize(process.cwd());
 if (process.argv[2] == '--help' || process.argv[2] == '-h') {
 	console.log([
 		'    mcs',
-		'    A Minecraft Scripting language which converts to functions',
+		'    A simple and easy to use scripting language which compiles into Minecraft functions.',
 		'    ',
 		'    Commands:',
 		'        mcs <input> [output (optional)] - Convert input file to output directory',
@@ -25,7 +24,7 @@ if (process.argv[2] == '--help' || process.argv[2] == '-h') {
 		'        Convert file.mcs in the ./output directory',
 		'        mcs ./file.mcs ./output',
 		'    ',
-		'    Check repo for more info: https://github.com/PandawanFr/mcs'
+		'    Check the GitHub repository for more info: https://github.com/PandawanFr/mcs'
 	].join('\n'));
 }
 else if (process.argv[2] == '--version' || process.argv[2] == '-v') {
@@ -56,13 +55,17 @@ function run() {
 			console.log(err);
 			return;
 		}
-		var output = mcs(data, { debug: false});
+		var output = mcs(data);
+		writeFile(path.join(outputDir, 'output.json'), JSON.stringify(output, null, '\t'));
+		/*
 		if (output) {
 			for (var file in output) {
 				var fileData = output[file];
 				writeFile(path.join(outputDir, file), fileData);
 			}
 		}
+
+		*/
 	});
 }
 
