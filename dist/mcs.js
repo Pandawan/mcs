@@ -18,7 +18,7 @@
                     oldDebug = true,
                     addTop = "",
                     inFunc = false,
-                    currentGroup = '',
+                    currentGroup = [],
                     currentFunc = '';
 
                 // Environment is used to remember/manage the scope
@@ -117,7 +117,8 @@
 
                 function quickEvaler(exp, env) {
                     function quickEval(element) {
-                        if (element.type == "command") addTop += make_command(env, element) + "\n";
+                        // Don't need to return commands, they get added automatically
+                        if (element.type == "command") make_command(env, element);
                         else if (element.type == "return" || element.type == "if") {
                             return evaluate(element, env);
                         } else evaluate(element, env);
@@ -142,6 +143,8 @@
 
                 // Create a JS macro to evaluate when called
                 function make_macro(env, exp) {
+                    if (exp.name == "range") err("Range is a pre-defined macro, please use another name");
+
                     function macro() {
                         var names = exp.vars;
                         var scope = env.extend();
@@ -159,6 +162,7 @@
                     oldDebug = debug;
                     try {
                         debug = false;
+                        if (exp.value == "range") return range_macro;
                         var possible = env.get(exp.value);
                         debug = oldDebug;
                         return possible;
@@ -237,6 +241,7 @@
                         if (i != 0) cmd += " ";
                         cmd += evaluate(exp.value[i], env);
                     }
+                    // Whenever a command is read, add it to the output
                     addToOutput(currentFunc, cmd + "\n");
                     return cmd;
                 }
@@ -256,34 +261,45 @@
                     inFunc = true;
                     currentFunc = exp.name;
                     evaluate(exp.body, env.extend());
-                    // Use current groups if there is one
-                    //addToOutput(exp.name, x);
+                    // No need to add anything to the output here, whenever a command is found, it adds it when read
                     currentFunc = '';
                     inFunc = false;
                 }
 
                 function make_group(env, exp) {
                     if (inFunc) err("Groups cannot be inside functions!");
-                    currentGroup += exp.name;
+                    currentGroup.push(exp.name);
                     evaluate(exp.body, env.extend());
+                    currentGroup.pop();
                 }
 
                 function addToOutput(name, value) {
                     if (currentGroup) {
+                        var curOutput = output;
+                        currentGroup.forEach(function(element) {
+                            if (!curOutput[element]) curOutput[element] = {};
+                            curOutput = curOutput[element];
+                        });
                         // If it doesn't exist yet, set instead of add (or else it says undefined at the start)
-                        if (output[currentGroup]) output[currentGroup][name] += value;
+                        if (!isJSONEmpty(curOutput) && !isJSONEmpty(curOutput[name])) curOutput[name] += value;
                         else {
-                            output[currentGroup] = {};
-                            output[currentGroup][name] = value;
+                            curOutput[name] = value;
                         }
                     } else {
                         // If it doesn't exist yet, set instead of add (or else it says undefined at the start)
-                        if (output[name]) output[name] += value;
+                        if (!isJSONEmpty(output) && !isJSONEmpty(output[name])) output[name] += value;
                         else {
-                            output[currentGroup] = {};
                             output[name] = value;
                         }
                     }
+                }
+
+                function isJSONEmpty(obj) {
+                    for (var prop in obj) {
+                        if (obj.hasOwnProperty(prop))
+                            return false;
+                    }
+                    return JSON.stringify(obj) === JSON.stringify({});
                 }
 
                 // Evaluates all the tokens and compiles commands
@@ -1221,8 +1237,7 @@
                 }
             }
 
-            /*
-            function range(min, max, delta) {
+            function range_macro(min, max, delta) {
                 // range(n) creates a array from 1 to n, including n.
                 // range(m,n) creates a array from m to n, including n.
                 // range(n,m,delta) creates a array from n to m, by step of delta. May not include max
@@ -1251,7 +1266,6 @@
                 return arr;
 
             }
-            */
 
             /* This will appear at the bottom/end of the final dist file */
 

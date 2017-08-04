@@ -6,7 +6,7 @@ function Compiler(exp) {
         oldDebug = true,
         addTop = "",
         inFunc = false,
-        currentGroup = '',
+        currentGroup = [],
         currentFunc = '';
 
     // Environment is used to remember/manage the scope
@@ -102,10 +102,13 @@ function Compiler(exp) {
         }
         err("Can't apply operator " + op);
     }
-
+    // Evaluates things quickly
+    // Evaluates things normally except that it doesn't return anything except when the return keyword is used.
+    // Also evaluates commands differently as they are added to the output
     function quickEvaler(exp, env) {
         function quickEval(element) {
-            if (element.type == "command") addTop += make_command(env, element) + "\n";
+            // Don't need to return commands, they get added automatically
+            if (element.type == "command") make_command(env, element);
             else if (element.type == "return" || element.type == "if") {
                 return evaluate(element, env);
             } else evaluate(element, env);
@@ -130,6 +133,8 @@ function Compiler(exp) {
 
     // Create a JS macro to evaluate when called
     function make_macro(env, exp) {
+        if (exp.name == "range") err("Range is a pre-defined macro, please use another name");
+
         function macro() {
             var names = exp.vars;
             var scope = env.extend();
@@ -147,6 +152,7 @@ function Compiler(exp) {
         oldDebug = debug;
         try {
             debug = false;
+            if (exp.value == "range") return range_macro;
             var possible = env.get(exp.value);
             debug = oldDebug;
             return possible;
@@ -181,7 +187,7 @@ function Compiler(exp) {
         });
         return arr;
     }
-
+    // Get the ivar's value
     function get_ivar(env, exp) {
         var ivar = env.get(exp.value);
         if (exp.index) {
@@ -190,26 +196,33 @@ function Compiler(exp) {
             return ivar[index];
         } else return ivar;
     }
-
+    // Assign can either be a declaration or a modification
     function make_assign(env, exp) {
+        // Modify a current variable, use set
         if (exp.left.type == "ivar") return env.set(exp.left.value, evaluate(exp.right, env));
+        // Declare a new variable, define (def)
         else if (exp.left.type == "var") {
             return env.def(exp.left.value, evaluate(exp.right, env));
         }
     }
-
+    // Need to compile JSON the way that MC would accept it
     function make_json(env, exp) {
         var json = "{";
         for (var i = 0; i < exp.value.length; i++) {
             var jsonToAdd = "";
+            // if it's a string, add quotes around it
             if (exp.value[i].type == "str") {
                 jsonToAdd = "\"" + evaluate(exp.value[i], env) + "\"";
-            } else if (exp.value[i].type == "array") {
+            }
+            // If it's an array, JSONinfy it
+            else if (exp.value[i].type == "array") {
                 var temp = evaluate(exp.value[i], env);
                 jsonToAdd = JSON.stringify(Object.keys(temp).map(function(k) {
                     return temp[k];
                 }));
-            } else {
+            }
+            // if it's something else, evaluate it, it might be something interesting
+            else {
                 jsonToAdd = evaluate(exp.value[i], env);
             }
             json += jsonToAdd;
@@ -225,10 +238,11 @@ function Compiler(exp) {
             if (i != 0) cmd += " ";
             cmd += evaluate(exp.value[i], env);
         }
+        // Whenever a command is read, add it to the output
         addToOutput(currentFunc, cmd + "\n");
         return cmd;
     }
-
+    // Programs are anything inside a {} with more than one statement
     function make_prog(env, exp) {
         var final = "";
         exp.prog.forEach(function(exp) {
@@ -239,39 +253,57 @@ function Compiler(exp) {
         });
         return final;
     }
-
+    // Make a function, evaluate, get out of function
     function make_func(env, exp) {
         inFunc = true;
         currentFunc = exp.name;
         evaluate(exp.body, env.extend());
-        // Use current groups if there is one
-        //addToOutput(exp.name, x);
+        // No need to add anything to the output here, whenever a command is found, it adds it when read
         currentFunc = '';
         inFunc = false;
     }
-
+    // Make a group, evaluate inside, get out of group
     function make_group(env, exp) {
         if (inFunc) err("Groups cannot be inside functions!");
-        currentGroup += exp.name;
+        currentGroup.push(exp.name);
         evaluate(exp.body, env.extend());
+        currentGroup.pop();
     }
 
+    // Add the given key-value pair to the output
     function addToOutput(name, value) {
+        // Check whether or not we are in a group
         if (currentGroup) {
+            // Get the actual current group (allows for sub-grouping)
+            var curOutput = output;
+            currentGroup.forEach(function(element) {
+                if (!curOutput[element]) curOutput[element] = {};
+                curOutput = curOutput[element];
+            });
+
             // If it doesn't exist yet, set instead of add (or else it says undefined at the start)
-            if (output[currentGroup]) output[currentGroup][name] += value;
+            if (!isJSONEmpty(curOutput) && !isJSONEmpty(curOutput[name])) curOutput[name] += value;
             else {
-                output[currentGroup] = {};
-                output[currentGroup][name] = value;
+                curOutput[name] = value;
             }
-        } else {
+        }
+        // Already in a group
+        else {
             // If it doesn't exist yet, set instead of add (or else it says undefined at the start)
-            if (output[name]) output[name] += value;
+            if (!isJSONEmpty(output) && !isJSONEmpty(output[name])) output[name] += value;
             else {
-                output[currentGroup] = {};
                 output[name] = value;
             }
         }
+    }
+
+    // Whether or not a JSON object is empty
+    function isJSONEmpty(obj) {
+        for (var prop in obj) {
+            if (obj.hasOwnProperty(prop))
+                return false;
+        }
+        return JSON.stringify(obj) === JSON.stringify({});
     }
 
     // Evaluates all the tokens and compiles commands

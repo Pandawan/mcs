@@ -12,11 +12,17 @@ macro aMacro ($parametery) {
 	return 5 + $parametery;
 };
 
-group heyyy {
-	function haiii {
-		say hey;
-		say aMacro(5);
-		say hai;
+		function haiii {
+			say hey;
+			say aMacro(5);
+			say hai;
 
-	};
-};
+			say range(5);
+
+		};
+
+	group aii {
+		function as23 {
+			say oi;
+		}
+}

@@ -1,5 +1,4 @@
-/*
-function range(min, max, delta) {
+function range_macro(min, max, delta) {
     // range(n) creates a array from 1 to n, including n.
     // range(m,n) creates a array from m to n, including n.
     // range(n,m,delta) creates a array from n to m, by step of delta. May not include max
@@ -28,4 +27,3 @@ function range(min, max, delta) {
     return arr;
 
 }
-*/
