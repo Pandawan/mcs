@@ -3,52 +3,20 @@
 // Macros allow you to write similar commands more quickly
 macro aMacro ($parametery) {
 
-	if ($parametery == 5){
-		return 10;
-	};
-	gamerule HAHAHAI;
+	say oi;
+
+	// This will appear on the line above the call to aMacro
+	say HAHAHAI;
 
 	// This is the value that will replace any call to "aMacro()"
 	return 5 + $parametery;
 };
-function haiii {
 
-	// Variables (contains a string)
-	var $stringVar = "a string var";
-
-	// Variable with a number
-	var $numberVar = 3.1415;
-
-	// Relative
-	var $rel = ~-55;
-
-	say $rel;
-
-	if ($numberVar < 4) {
-
+group heyyy {
+	function haiii {
 		say hey;
-		var $something = 5;
-		say $something;
+		say aMacro(5);
+		say hai;
 
-		if ($something == 5) {
-			say $something is 5;
-		};
 	};
-
-	var $json = {"text":["text", "more_text", 12], "other": {"text": "text"}};
-	say $json;
-
-	// Variable with a boolean
-	var $boolVar = true;
-
-	say $boolVar;
-
-	say aMacro(5);
-
-	var $arrVar = [15, "test", false];
-
-	say $arrVar[0];
-
-	$stringVar = "another string";
-
-}
+};

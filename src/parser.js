@@ -664,7 +664,7 @@ function Parser(input) {
 			a = { type: "json", value: [] };
 			while (!input.eof()) {
 				if (is_punc("}")) break;
-				if (first) first = false; else if (input.peek().type == "colon") first = true; else { a.value.push(skip_comma()); console.log(input.peek()) };
+				if (first) first = false; else if (input.peek().type == "colon") first = true; else a.value.push(skip_comma());;
 				if (is_punc("}")) break;
 				a.value.push(parse_expression());
 			}

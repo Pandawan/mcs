@@ -16,7 +16,10 @@
 
                 var debug = true,
                     oldDebug = true,
-                    addTop = "";
+                    addTop = "",
+                    inFunc = false,
+                    currentGroup = '',
+                    currentFunc = '';
 
                 // Environment is used to remember/manage the scope
                 function Environment(parent) {
@@ -145,8 +148,8 @@
                         for (var i = 0; i < names.length; ++i)
                             scope.def(names[i], i < arguments.length ? arguments[i] : false);
 
-                        return quickEvaler(exp.body, scope);
-
+                        var x = quickEvaler(exp.body, scope);
+                        return x;
                     }
                     return env.set(exp.name, macro);
                 }
@@ -172,7 +175,11 @@
                         var x = quickEvaler(exp.then, env.extend());
                         if (x) return x;
                     }
-                    return exp.else ? evaluate(exp.else, env.extend()) : false;
+                    if (exp.else) {
+                        var y = quickEvaler(exp.else, env.extend());
+                        if (y) return y;
+                    }
+                    return false;
                 }
 
                 // Create an array
@@ -206,18 +213,18 @@
                 function make_json(env, exp) {
                     var json = "{";
                     for (var i = 0; i < exp.value.length; i++) {
-                        var toAdd = "";
+                        var jsonToAdd = "";
                         if (exp.value[i].type == "str") {
-                            toAdd = "\"" + evaluate(exp.value[i], env) + "\"";
+                            jsonToAdd = "\"" + evaluate(exp.value[i], env) + "\"";
                         } else if (exp.value[i].type == "array") {
                             var temp = evaluate(exp.value[i], env);
-                            toAdd = JSON.stringify(Object.keys(temp).map(function(k) {
+                            jsonToAdd = JSON.stringify(Object.keys(temp).map(function(k) {
                                 return temp[k];
                             }));
                         } else {
-                            toAdd = evaluate(exp.value[i], env);
+                            jsonToAdd = evaluate(exp.value[i], env);
                         }
-                        json += toAdd;
+                        json += jsonToAdd;
                     }
                     json += "}";
                     return json;
@@ -230,6 +237,7 @@
                         if (i != 0) cmd += " ";
                         cmd += evaluate(exp.value[i], env);
                     }
+                    addToOutput(currentFunc, cmd + "\n");
                     return cmd;
                 }
 
@@ -238,16 +246,44 @@
                     exp.prog.forEach(function(exp) {
                         if (exp.type == "command") {
                             var cmd = evaluate(exp, env);
-                            final += addTop + cmd + "\n";
-                            addTop = "";
+                            final += cmd + "\n";
                         } else evaluate(exp, env);
                     });
                     return final;
                 }
 
                 function make_func(env, exp) {
-                    var x = evaluate(exp.body, env.extend());
-                    output[exp.name] = x;
+                    inFunc = true;
+                    currentFunc = exp.name;
+                    evaluate(exp.body, env.extend());
+                    // Use current groups if there is one
+                    //addToOutput(exp.name, x);
+                    currentFunc = '';
+                    inFunc = false;
+                }
+
+                function make_group(env, exp) {
+                    if (inFunc) err("Groups cannot be inside functions!");
+                    currentGroup += exp.name;
+                    evaluate(exp.body, env.extend());
+                }
+
+                function addToOutput(name, value) {
+                    if (currentGroup) {
+                        // If it doesn't exist yet, set instead of add (or else it says undefined at the start)
+                        if (output[currentGroup]) output[currentGroup][name] += value;
+                        else {
+                            output[currentGroup] = {};
+                            output[currentGroup][name] = value;
+                        }
+                    } else {
+                        // If it doesn't exist yet, set instead of add (or else it says undefined at the start)
+                        if (output[name]) output[name] += value;
+                        else {
+                            output[currentGroup] = {};
+                            output[name] = value;
+                        }
+                    }
                 }
 
                 // Evaluates all the tokens and compiles commands
@@ -285,6 +321,8 @@
                             return make_if(env, exp);
                         case "function":
                             return make_func(env, exp);
+                        case "group":
+                            return make_group(env, exp);
                         case "prog":
                             return make_prog(env, exp);
                         case "call":
@@ -1084,10 +1122,7 @@
                             if (is_punc("}")) break;
                             if (first) first = false;
                             else if (input.peek().type == "colon") first = true;
-                            else {
-                                a.value.push(skip_comma());
-                                console.log(input.peek())
-                            };
+                            else a.value.push(skip_comma());;
                             if (is_punc("}")) break;
                             a.value.push(parse_expression());
                         }

@@ -1,3 +1,5 @@
 {
-	"haiii": "say -1\nsay ~-55\nsay hey\nsay 5\nsay 5 is 5\nsay {\"text\":[\"text\",\"more_text\",12],\"other\":{\"text\":\"text\"}}\nsay true\nsay 10\nsay 15\n"
+	"heyyy": {
+		"haiii": "say hey\nsay oi\nsay HAHAHAI\nsay 10\nsay hai\n"
+	}
 }
