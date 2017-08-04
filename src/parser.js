@@ -120,6 +120,15 @@ function TokenStream(input) {
 		str += input.next();
 		return str;
 	}
+	function try_number() {
+		input.next();
+		if (is_digit(input.peek())){
+			var num = read_number();
+			num.value *= -1;
+			return num;
+		}
+		input.croak("Can't handle character: " + input.peek());
+	}
 	function read_number() {
 		var has_dot = false;
 		var number = read_while(function(ch){
@@ -294,6 +303,7 @@ function TokenStream(input) {
 		if (ch == '"') return read_string();
 		if (ch == "~") return read_relative();
 		if (ch == ":") return read_colon();
+		if (ch == "-") return try_number();
 		if (is_digit(ch)) return read_number();
 		if (is_id_start(ch)) return read_ident();
 		if (is_punc(ch)) return {
@@ -371,6 +381,13 @@ function Parser(input) {
 	function skip_op(op) {
 		if (is_op(op)) input.next();
 		else input.croak("Expecting operator: \"" + op + "\"");
+	}
+	function skip_comma() {
+		if (is_punc(","))  {
+			input.next();
+			return { type: "comma" };
+		}
+		else input.croak("Expecting comma: \"" + JSON.stringify(input.peek()) + "\"")
 	}
 	function unexpected() {
 		input.croak("Unexpected token: " + JSON.stringify(input.peek()));
@@ -605,6 +622,14 @@ function Parser(input) {
 			value: setting.substring(indexSeparator + 1).trim()
 		};
 	}
+	function parse_relative() {
+		input.next();
+		var rel = { type: "relative" };
+		if (input.peek().type == "num") {
+			rel.offset = input.next().value;
+		}
+		return rel;
+	}
 	/* Parsing reg is complicated
 
 	Most of the time, a reg is simply a minecraft command and its arguments, it checks if it's an actual command, and if so, it returns the full command
@@ -621,17 +646,6 @@ function Parser(input) {
 				var next = parse_expression();
 				final.value.push(next);
 
-				// Need to parse JSON
-				/*
-				if(is_punc('{')) {
-				var json = { type: "json", value: ''};
-				input.next();
-				while (!input.eof()) {
-				json.value += input.next().value;
-				if (is_punc('} ')) break;}
-				final.value.push(json); }
-				*/
-
 				if (is_punc(';')) break;
 				else if (input.eof()) skip_punc(';');
 			}
@@ -639,6 +653,37 @@ function Parser(input) {
 		} else {
 			return input.next();
 			//unexpected();
+		}
+	}
+	// Check whether or not the given token is a JSON or a program
+	function json_or_prog() {
+		skip_punc("{");
+		var a = {}, first = true;
+		// Check if the next item is a string
+		if (input.peek().type == "str") {
+			a = { type: "json", value: [] };
+			while (!input.eof()) {
+				if (is_punc("}")) break;
+				if (first) first = false; else if (input.peek().type == "colon") first = true; else { a.value.push(skip_comma()); console.log(input.peek()) };
+				if (is_punc("}")) break;
+				a.value.push(parse_expression());
+			}
+			skip_punc("}");
+			return a;
+		}
+		// Regular program
+		else {
+			a = { type: "prog", prog: [] };
+			while (!input.eof()) {
+				if (is_punc("}")) break;
+				if (first) first = false; else if (check_last()) skip_punc(";");
+				if (is_punc("}")) break;
+				a.prog.push(parse_expression());
+			}
+			skip_punc("}");
+			if (a.prog.length == 0) return FALSE;
+			if (a.prog.length == 1) return a.prog[0];
+			return a;
 		}
 	}
 	function maybe_call(expr) {
@@ -654,7 +699,7 @@ function Parser(input) {
 				skip_punc(")");
 				return exp;
 			}
-			if (is_punc("{")) return parse_prog();
+			if (is_punc("{")) return json_or_prog();
 			if (is_punc("[")) return parse_array();
 			if (is_kw("if")) return parse_if();
 			if (is_kw("var")) return parse_var();
@@ -671,9 +716,10 @@ function Parser(input) {
 			if (input.peek().type == 'reg') return parse_reg();
 			if (input.peek().type == 'setting') return parse_setting();
 			if (input.peek().type == "ivar") return parse_ivar();
+			if(input.peek().type == 'relative') return parse_relative();
 
 			var tok = input.next();
-			if (tok.type == 'colon' || tok.type == 'relative' || tok.type == "selector" || tok.type == "num" || tok.type == "str")
+			if (tok.type == 'colon' || tok.type == "selector" || tok.type == "num" || tok.type == "str")
 			return tok;
 			unexpected();
 		});
@@ -693,13 +739,13 @@ function Parser(input) {
 		}
 		return { type: "prog", prog: prog };
 	}
+	/* UNUSED but keep for clarity
 	// Parse through a full program
 	function parse_prog() {
-		var prog = delimited("{", "}", ";", parse_expression);
-		if (prog.length == 0) return FALSE;
-		if (prog.length == 1) return prog[0];
-		return { type: "prog", prog: prog };
-	}
+	var prog = delimited("{", "}", ";", parse_expression);
+	if (prog.length == 0) return FALSE;
+	if (prog.length == 1) return prog[0];
+	return { type: "prog", prog: prog };}*/
 	// Parse through everything, parse binary and calls just in case
 	function parse_expression() {
 		return maybe_call(function(){

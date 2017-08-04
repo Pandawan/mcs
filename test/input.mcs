@@ -19,7 +19,13 @@ function haiii {
 	// Variable with a number
 	var $numberVar = 3.1415;
 
+	// Relative
+	var $rel = ~-55;
+
+	say $rel;
+
 	if ($numberVar < 4) {
+
 		say hey;
 		var $something = 5;
 		say $something;
@@ -28,6 +34,9 @@ function haiii {
 			say $something is 5;
 		};
 	};
+
+	var $json = {"text":["text", "more_text", 12], "other": {"text": "text"}};
+	say $json;
 
 	// Variable with a boolean
 	var $boolVar = true;
