@@ -1,6 +1,16 @@
 {
-	"haiii": "say hey\nsay oi\nsay HAHAHAI\nsay 10\nsay hai\nsay 1,2,3,4,5\n",
-	"aii": {
-		"as23": "say oi\n"
+	"hey": {
+		"_type": "namespace",
+		"haiii": {
+			"_type": "function",
+			"value": "# this is a parsed comment\nsay ~-5\nsay before @a[score_min=5] macro\nsay macro2\nsay 10\nsay after macro\nsay Number 5\nsay Number 4\nsay Number 3\nsay Number 2\nsay Number 1\nsay again 1\nsay again 2\nsay again 3\nsay again 4\nsay again 5\nexecute @a ~ ~ ~ execute @e 1 1 1 say evenmore\nexecute @a ~ ~ ~ say hey\nsay macro2\nsay an evaled block 10\n"
+		},
+		"aii": {
+			"_type": "group",
+			"as23": {
+				"_type": "function",
+				"value": "say inside a group\n"
+			}
+		}
 	}
 }

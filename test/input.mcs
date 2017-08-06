@@ -1,28 +1,50 @@
 // This is a testing file
 
+@!namespace: hey
+
 // Macros allow you to write similar commands more quickly
 macro aMacro ($parametery) {
 
-	say oi;
-
 	// This will appear on the line above the call to aMacro
-	say HAHAHAI;
+	say macro2;
 
 	// This is the value that will replace any call to "aMacro()"
 	return 5 + $parametery;
 };
 
-		function haiii {
-			say hey;
-			say aMacro(5);
-			say hai;
+function haiii {
+	# this is a parsed comment
 
-			say range(5);
+	var $some_selector = @a[score_min=5];
 
+	var $someCoords = ~-5;
+	say $someCoords;
+
+	say before $some_selector "macro";
+	say aMacro(5);
+	say after "macro";
+
+	for (var $i = 5; $i > 0; $i = $i - 1) {
+		say Number $i;
+	};
+
+	foreach(var $i in range(5)){
+		say again $i;
+	};
+
+	execute @a ~ ~ ~ {
+		execute @e 1 1 1 {
+			say evenmore;
 		};
+		say hey;
+	};
 
-	group aii {
-		function as23 {
-			say oi;
-		}
-}
+	say "an evaled block `return aMacro(5);`";
+
+};
+
+group aii {
+	function as23 {
+		say inside a "group";
+	};
+};

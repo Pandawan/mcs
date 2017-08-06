@@ -6,8 +6,10 @@ function Compiler(exp) {
         oldDebug = true,
         addTop = "",
         inFunc = false,
-        currentGroup = [],
-        currentFunc = '';
+        current = [],
+        currentFunc = '',
+        namespace = '',
+        prefix = [];
 
     // Environment is used to remember/manage the scope
     function Environment(parent) {
@@ -175,6 +177,63 @@ function Compiler(exp) {
         }
         return false;
     }
+    // For loops
+    function make_for(env, exp) {
+        // Create a new env
+        var newEnv = env.extend();
+        // Evaluate the first param (declaring variable)
+        evaluate(exp.params[0], newEnv);
+        // While the second param is valid
+        while (evaluate(exp.params[1], newEnv)) {
+            // Evaluate the for content
+            evaluate(exp.then, newEnv);
+            // Evaluate the last param (setting/modifying the variable)
+            evaluate(exp.params[2], newEnv);
+        }
+    }
+    // Foreach loops
+    function make_foreach(env, exp) {
+        // Create a new env
+        var newEnv = env.extend();
+        // Get the array
+        var arr = evaluate(exp.param, env);
+        // Define the variable
+        newEnv.def(exp.variable.value, 0);
+        // Loop through all of them
+        for (var i = 0; i < arr.length; i++) {
+            // Set the variable to the correct value
+            newEnv.set(exp.variable.value, arr[i]);
+            // Evaluate
+            evaluate(exp.then, newEnv);
+        }
+    }
+    // Execute blocks
+    function make_execute(env, exp) {
+        // Add prefix
+        prefix.push("execute " + exp.selector.value + " " + exp.pos[0].value + " " + exp.pos[1].value + " " + exp.pos[2].value + " ");
+        // Evaluate content
+        evaluate(exp.prog, env.extend());
+        // pop
+        prefix.pop();
+    }
+    // Strings can also have evals inside them
+    function make_string(env, exp) {
+        // If it's an array, then it contains evals
+        if (Array.isArray(exp.value)) {
+            var final = "";
+            for (var i = 0; i < exp.value.length; i++) {
+                if (exp.value[i].type == "prog") {
+                    var x = evaluate(exp.value[i], env.extend());
+                    final += x;
+                } else final += exp.value[i].value;
+            }
+            return final;
+        }
+        // If it's a basic string
+        else {
+            return exp.value;
+        }
+    }
 
     // Create an array
     function make_array(env, exp) {
@@ -230,6 +289,10 @@ function Compiler(exp) {
         json += "}";
         return json;
     }
+    // Create a comment and add it
+    function make_comment(env, exp) {
+        addToOutput(currentFunc, exp.value + "\n");
+    }
     // Create a command
     function make_command(env, exp) {
         var cmd = "";
@@ -239,7 +302,8 @@ function Compiler(exp) {
             cmd += evaluate(exp.value[i], env);
         }
         // Whenever a command is read, add it to the output
-        addToOutput(currentFunc, cmd + "\n");
+        var prefixToAdd = (prefix && prefix.length > 0) ? prefix.join('') : '';
+        addToOutput(currentFunc, prefixToAdd + cmd + "\n");
         return cmd;
     }
     // Programs are anything inside a {} with more than one statement
@@ -249,6 +313,11 @@ function Compiler(exp) {
             if (exp.type == "command") {
                 var cmd = evaluate(exp, env);
                 final += cmd + "\n";
+            }
+            // Need to add returned items because of eval blocks
+            else if (exp.type == "return") {
+                var output = evaluate(exp, env);
+                final += output;
             } else evaluate(exp, env);
         });
         return final;
@@ -264,35 +333,64 @@ function Compiler(exp) {
     }
     // Make a group, evaluate inside, get out of group
     function make_group(env, exp) {
-        if (inFunc) err("Groups cannot be inside functions!");
-        currentGroup.push(exp.name);
+        if (inFunc) err("Groups cannot be inside functions");
+        current.push(exp.name);
         evaluate(exp.body, env.extend());
-        currentGroup.pop();
+        current.pop();
+    }
+
+    function make_setting(env, exp) {
+        if (env.parent != null) err("Settings must be declared in the root");
+        if (exp.name == "namespace") {
+            if (namespace && namespace != "namespace") err("Cannot declare namespace more than once");
+            if (namespace && namespace == "_namespace") err("Please declare the namespace BEFORE writing any functions");
+            namespace = exp.value;
+        } else {
+            err("No setting found with the name " + exp.name);
+        }
     }
 
     // Add the given key-value pair to the output
     function addToOutput(name, value) {
+
+        // We need the namespace now, if it doesn't exist, set it! (Use _namespace so that there's less chance of conflict)
+        if (!namespace) namespace = "_namespace";
+        if (!output[namespace]) output[namespace] = {
+            _type: "namespace"
+        };
+        // Get the current position to setup our group
+        var curOutput = output[namespace];
+
         // Check whether or not we are in a group
-        if (currentGroup) {
-            // Get the actual current group (allows for sub-grouping)
-            var curOutput = output;
-            currentGroup.forEach(function(element) {
-                if (!curOutput[element]) curOutput[element] = {};
+        if (current) {
+            // Get the current group
+            current.forEach(function(element) {
+                if (!curOutput[element]) curOutput[element] = {
+                    _type: "group"
+                };
                 curOutput = curOutput[element];
             });
 
             // If it doesn't exist yet, set instead of add (or else it says undefined at the start)
-            if (!isJSONEmpty(curOutput) && !isJSONEmpty(curOutput[name])) curOutput[name] += value;
-            else {
-                curOutput[name] = value;
+            if (curOutput.hasOwnProperty(name)) {
+                curOutput[name].value += value;
+            } else {
+                curOutput[name] = {
+                    _type: "function",
+                    value: value
+                };
             }
         }
-        // Already in a group
+        // No groups
         else {
             // If it doesn't exist yet, set instead of add (or else it says undefined at the start)
-            if (!isJSONEmpty(output) && !isJSONEmpty(output[name])) output[name] += value;
-            else {
-                output[name] = value;
+            if (curOutput.hasOwnProperty(name)) {
+                curOutput[name] += value;
+            } else {
+                curOutput[name] = {
+                    _type: "function",
+                    value: value
+                };
             }
         }
     }
@@ -310,23 +408,29 @@ function Compiler(exp) {
     function evaluate(exp, env) {
         switch (exp.type) {
             case "num":
-            case "str":
             case "bool":
+            case "selector":
                 return exp.value;
+                return make_array(env, exp);
+            case "str":
+                return make_string(env, exp);
+            case "eval":
+                return evaluate(exp.value, env.extend());
             case "colon":
                 return ":";
             case "relative":
-                return exp.offset ? ("~" + exp.offset) : "~";
+                return exp.value;
             case "comma":
                 return ",";
             case "json":
                 return make_json(env, exp);
             case "reg":
                 return reg_or_macro(env, exp);
+            case "comment":
+                return make_comment(env, exp);
             case "command":
                 return make_command(env, exp);
             case "array":
-                return make_array(env, exp);
             case "ivar":
                 return get_ivar(env, exp);
             case "assign":
@@ -339,10 +443,18 @@ function Compiler(exp) {
                 return evaluate(exp.value, env);
             case "if":
                 return make_if(env, exp);
+            case "for":
+                return make_for(env, exp);
+            case "foreach":
+                return make_foreach(env, exp);
+            case "execute":
+                return make_execute(env, exp);
             case "function":
                 return make_func(env, exp);
             case "group":
                 return make_group(env, exp);
+            case "setting":
+                return make_setting(env, exp);
             case "prog":
                 return make_prog(env, exp);
             case "call":

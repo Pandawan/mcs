@@ -1,35 +1,9 @@
-/* WIP Advanced Parser
-I don't know if I'll actually use it, I'm trying things out and testing things.
-This should be a much more advanced parser...
+/* Advanced Parser
 InputStream reads characters
 TokenStream is the lexer (converts everything into tokens)
-Parser tries to create node structures out of the tokens
-
-Once that is done, need a compiler which uses all the tokens and converts everything into MCFunction files
+Parser tries to create node structures (AST) out of the tokens
 
 Parser based on: http://lisperator.net/pltut/
-
-
-Current Progress:
-
-V - # comments (only on new line)
-V - // comments
-V - variable assigning
-V - binary operations
-V - numbers, bools and strings
-V - return
-V - basic commands
-V - if elseif else
-V - for loops
-V - foreach loops (var [var name] in [macro call])
-V - macros + calls (macro())
-V - basic functions
-V - @!settings like namespaces (only on new line)
-V - Arrays
-V - evaluation blocks
-V - execute blocks
-V - selector
-V - Variable macros (lambdas)
 */
 
 // List of all commands that exist in mc
@@ -110,7 +84,7 @@ function TokenStream(input) {
     }
 
     function is_id_start(ch) {
-        return /[a-z0-9-_\$]/i.test(ch);
+        return /[a-z0-9_\$]/i.test(ch);
     }
 
     function is_id(ch) {
@@ -311,9 +285,12 @@ function TokenStream(input) {
     }
 
     function read_relative() {
-        input.next();
+        var val = read_while(function(ch) {
+            return (!is_whitespace(ch) && ch != ";");
+        });
         return {
-            type: 'relative'
+            type: 'relative',
+            value: val
         };
     }
 
@@ -331,7 +308,7 @@ function TokenStream(input) {
         });
         return {
             type: "comment",
-            value: output
+            value: output.replace('\r', '')
         };
     }
 
@@ -368,7 +345,6 @@ function TokenStream(input) {
         if (ch == '"') return read_string();
         if (ch == "~") return read_relative();
         if (ch == ":") return read_colon();
-        if (ch == "-") return try_number();
         if (is_digit(ch)) return read_number();
         if (is_id_start(ch)) return read_ident();
         if (is_punc(ch)) return {
@@ -379,6 +355,7 @@ function TokenStream(input) {
             type: "op",
             value: read_while(is_op_char)
         };
+
         input.croak("Can't handle character: " + ch);
     }
 
@@ -729,16 +706,9 @@ function Parser(input) {
             value: setting.substring(indexSeparator + 1).trim()
         };
     }
-
+    // Relatives are already parsed
     function parse_relative() {
-        input.next();
-        var rel = {
-            type: "relative"
-        };
-        if (input.peek().type == "num") {
-            rel.offset = input.next().value;
-        }
-        return rel;
+        return input.next();
     }
     /* Parsing reg is complicated
 
