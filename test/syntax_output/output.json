@@ -5,7 +5,7 @@
 			"_type": "group",
 			"myFunction": {
 				"_type": "function",
-				"value": "# Parsed comments (get added to final function file) cannot be in root\nsay hello world\ntellraw @a {\"text\":\"this is an eval block -> a string var\"}\nsay Number is less than 4\nsay Num 0\nsay Num 1\nsay Num 2\nsay Num 3\nsay Num 0\nsay Num 1\nsay Num 2\nsay Num 3\nexecute @a ~ ~ ~ say Hello World\nfunction myNamespace : callAMacro if @a[score_hello=1]\n"
+				"value": "# Parsed comments (get added to final function file) cannot be in root\nsay hello world\ntellraw @a {\"text\":\"this is an eval block -> a string var\"}\nsay Number is less than 4\nsay for loop\nsay Num 0\nsay Num 1\nsay Num 2\nsay Num 3\nsay foreach loop\nsay Num 0\nsay Num 1\nsay Num 2\nsay Num 3\nexecute @a ~ ~ ~ say Hello World\nfunction myNamespace : callAMacro if @a[score_hello=1]\n"
 			}
 		},
 		"callAMacro": {

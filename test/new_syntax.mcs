@@ -52,11 +52,17 @@ group myFolder {
 		   say Number is greater than 4;
 		};
 
+		// If you want to use a reserved keyword in your commands, put quotes around it
+		say "for" loop;
+		// will become say for loop
+
 		// For loops, from 0->3 inclusive
 		for(var $i = 0; $i < 4; $i = $i + 1) {
 			// This will say "Num 0", "Num 1", "Num 2", "Num 3"
 			say Num $i;
 		};
+
+		say "foreach" loop;
 
 		// Or you can do the same thing with a foreach loop
 		foreach (var $j in range(0,3)) {

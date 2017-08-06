@@ -57,7 +57,7 @@ Add to your html
 ```javascript
 var input = 'function hello {\n say hello world \n}'
 var result = mcs(input)
-// result = { "hello.mcfunction": "say hello world" }
+// result = { "hello": "_type": "function", "value": "say hello world" }
 ```
 
 `mcs()` takes one required argument, the input (string to convert), and returns a JSON object, with the file name as key and its file content as value.
