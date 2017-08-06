@@ -182,8 +182,7 @@
                     if (cond !== false) {
                         var x = quickEvaler(exp.then, env.extend());
                         if (x) return x;
-                    }
-                    if (exp.else) {
+                    } else if (exp.else) {
                         var y = quickEvaler(exp.else, env.extend());
                         if (y) return y;
                     }
@@ -310,7 +309,11 @@
                     var cmd = "";
                     if (env.parent == null) err("Commands cannot be used in root");
                     for (var i = 0; i < exp.value.length; i++) {
-                        if (i != 0) cmd += " ";
+                        if (i > 0) {
+                            // Don't want to add a space between colons
+                            if ((exp.value[i + 1] && exp.value[i + 1].type != "colon") || (exp.value[i - 1] && exp.value[i - 1].type != "colon"))
+                                cmd += " ";
+                        }
                         cmd += evaluate(exp.value[i], env);
                     }
                     // Whenever a command is read, add it to the output
@@ -422,8 +425,8 @@
                         case "num":
                         case "bool":
                         case "selector":
+                        case "kw":
                             return exp.value;
-                            return make_array(env, exp);
                         case "str":
                             return make_string(env, exp);
                         case "eval":
@@ -443,6 +446,7 @@
                         case "command":
                             return make_command(env, exp);
                         case "array":
+                            return make_array(env, exp);
                         case "ivar":
                             return get_ivar(env, exp);
                         case "assign":

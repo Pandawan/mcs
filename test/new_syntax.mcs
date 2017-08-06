@@ -29,14 +29,15 @@ group myFolder {
 		// Variable with arrays (of any type)
 		var $arrVar = [15, "test", false];
 
+		// Use a variable by preceding its name with $
+		$numberVar = 3;
+
 		// Arrays can be accessed like so
 		$arrVar[1]; // Returns "test" (index starts at 0)
 
-		// Use a variable by preceding its name with $
-		$stringVar = "another string";
-
-		// You can use a variable anywhere
-		tellraw @a {"text":$stringVar};
+		// You can use an eval block, to use variables inside strings/quotation marks using ``
+		tellraw @a {"text":"this is an eval block -> `return $stringVar`"};
+		// will become tellraw @a {"text":"this is an eval block -> a string var"}
 
 		// If statements
 		if ($numberVar < 4) {
@@ -78,7 +79,7 @@ group myFolder {
 macro aMacro ($parameter1, $parameter2) {
 
 	// This will prepend normal commands in the line before the call to "aMacro()"
-	tellraw $parameter1 {"text":"Hello, my name is `$parameter2`."};
+	tellraw $parameter1 {"text":"Hello, my name is `return $parameter2`."};
 
 
 	// This is the value that will replace any call to "aMacro()"
@@ -92,9 +93,10 @@ function callAMacro {
 
 	// Call a macro and add its return value as a new line
 	var $hey = aMacro($selector, "John");
+	say $hey;
 
 	// This will compile into
-	tellraw @a[score_hello_min=1] {"text":"Hello, my name is John."}
-	var $hey = 5;
+	// tellraw @a[score_hello_min=1] {"text":"Hello, my name is John."}
+	// say 5;
 
 };
