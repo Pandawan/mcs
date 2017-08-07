@@ -19,5 +19,4 @@ v macro commands
 v macro return
 v macro calling
 v variable selectors
-v current group only allows for one group!!!
-v macro commands don't get added at start
+v Multiple groups

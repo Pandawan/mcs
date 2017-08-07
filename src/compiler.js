@@ -74,6 +74,9 @@ function Compiler(exp) {
                 err("Divide by zero");
             return x;
         }
+        if (op == "+" && (typeof a == "string" || typeof b == "string")) {
+            return a + b;
+        }
         switch (op) {
             case "+":
                 return num(a) + num(b);
@@ -327,6 +330,7 @@ function Compiler(exp) {
     }
     // Make a function, evaluate, get out of function
     function make_func(env, exp) {
+        if (inFunc) err("Cannot declare a function inside another");
         inFunc = true;
         currentFunc = exp.name;
         evaluate(exp.body, env.extend());

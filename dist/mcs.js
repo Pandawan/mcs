@@ -86,6 +86,9 @@
                             err("Divide by zero");
                         return x;
                     }
+                    if (op == "+" && (typeof a == "string" || typeof b == "string")) {
+                        return a + b;
+                    }
                     switch (op) {
                         case "+":
                             return num(a) + num(b);
@@ -339,6 +342,7 @@
                 }
                 // Make a function, evaluate, get out of function
                 function make_func(env, exp) {
+                    if (inFunc) err("Cannot declare a function inside another");
                     inFunc = true;
                     currentFunc = exp.name;
                     evaluate(exp.body, env.extend());
@@ -1384,7 +1388,7 @@
         mcs.help = function help() {
             console.log([
                 '    mcs',
-                '    A simple and easy to use scripting language which compiles into Minecraft functions.',
+                '    A pre-processor to write Minecraft Functions more efficiently',
                 '',
                 '    Usage:',
                 '    var output = mcs(input) - Converts MCS language into an object of function files',

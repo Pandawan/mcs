@@ -35,7 +35,13 @@ group myFolder {
 		// Arrays can be accessed like so
 		$arrVar[1]; // Returns "test" (index starts at 0)
 
-		// You can use an eval block, to use variables inside strings/quotation marks using ``
+		// You can add or set index elements like so
+		$arrVar[3] = 20;
+
+		// You can concatenate (add) strings
+		var $another = $stringVar + " something else";
+
+		// You can also use an eval block, to use variables inside strings/quotation marks using ``
 		tellraw @a {"text":"this is an eval block -> `return $stringVar`"};
 		// will become tellraw @a {"text":"this is an eval block -> a string var"}
 

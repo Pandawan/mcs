@@ -13,7 +13,7 @@ let curDir = path.normalize(process.cwd());
 if (process.argv[2] == '--help' || process.argv[2] == '-h') {
     console.log([
         '    mcs',
-        '    A simple and easy to use scripting language which compiles into Minecraft functions.',
+        '    A pre-processor to write Minecraft Functions more efficiently',
         '    ',
         '    Commands:',
         '        mcs <input> [output (optional)]    - Convert input file to output directory',
