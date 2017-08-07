@@ -2,7 +2,7 @@
 	"name": "mcs",
 	"version": "2.0.0",
 	"description": "A pre-processor to write Minecraft Functions more efficiently",
-	"main": "mcs.js",
+	"main": "dist/mcs.min.js",
 	"scripts": {
 		"test": "node index.js --debug ./test/new_syntax.mcs ./test/syntax_output/",
 		"build": "gulp build-all",
