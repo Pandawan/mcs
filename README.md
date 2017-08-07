@@ -26,7 +26,7 @@ Installation via `npm`:
 $ npm install mcs
 
 > var mcs = require('mcs');
-> mcs('function hello {\n say hello world; \n}');
+> mcs('function hello { say hello world; }');
 ```
 Alternatively you can install mcs globally so that it may be run from the command line.
 
@@ -57,9 +57,9 @@ Add to your html
 
 ## JS
 ```javascript
-var input = 'function hello {\n say hello world \n}'
+var input = 'function hello { say hello world; }'
 var result = mcs(input)
-// result = { "hello": "_type": "function", "value": "say hello world" }
+// result = { "_namespace": { "_type": "namespace", "hello": { "_type": "function", "value": "say hello world\n" } } }
 ```
 `mcs()` takes one required argument, the input (string to convert), and returns a JSON object, with the file name as key and its file content as value.
 
