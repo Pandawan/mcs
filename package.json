@@ -1,6 +1,6 @@
 {
 	"name": "mcs",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"description": "A pre-processor to write Minecraft Functions more efficiently",
 	"main": "dist/mcs.min.js",
 	"scripts": {
