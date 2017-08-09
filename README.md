@@ -61,7 +61,7 @@ var input = 'function hello { say hello world; }'
 var result = mcs(input)
 // result = { "_namespace": { "_type": "namespace", "hello": { "_type": "function", "value": "say hello world\n" } } }
 ```
-`mcs()` takes one required argument, the input (string to convert), and returns a JSON object, with the file name as key and its file content as value.
+`mcs()` takes one required argument, the input (string to convert), and returns a JSON object with namespaces, groups, and functions (you can differentiate them using _type).
 
 ## CLI
 ```shell
@@ -91,7 +91,7 @@ edit /test/input.mcs and check output at /test/output/
 8. Once done, create a pull request
 
 # Authors
-Made by [Pandawan](http://twitter.com/PandawanYT).
+Made by [Pandawan](http://twitter.com/PandawanYT).  
 Thanks to [Andrew Mast](https://github.com/AndrewMast) and [Chris Smith](https://github.com/chris13524) for helping out and providing feedback!
 
 # License
