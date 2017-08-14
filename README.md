@@ -80,15 +80,23 @@ Check out the current todo list [here](https://github.com/PandawanFr/mcs/blob/ma
 5. Edit the files in `/src`
 6. Test your changes with
 ```shell
+# Use your own input/output
 $ npm run build
 $ node index.js [input] [output]
-or
+
+
+# Alternatively:
+# Use test/new_syntax.mcs as input, and test/output/ as output
+$ npm run test
+
+# Build the source files AND use test/new_syntax.mcs as input, and test/output/ as output
 $ npm run bnt
 
-edit /test/input.mcs and check output at /test/output/
+# Autocompile/build whenever you change the src files (instead of npm run build)
+$ gulp
 ```
-7. You can also test your changes on the web by copying the `dist/mcs.min.js` file
-8. Once done, create a pull request
+8. You can also test your changes on the web by copying the `dist/mcs.min.js` file after building
+9. Once done, create a pull request
 
 # Authors
 Made by [Pandawan](http://twitter.com/PandawanYT).  
