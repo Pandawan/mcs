@@ -1,4 +1,9 @@
 # Changelog
+## Version 2.1.0
+Fixed some issues
+- Execute can now be used as a regular command (Fixes #3)
+- Selectors and Relatives can now hold variables/logic to be evaluated (Fixes #2)
+
 ## Version 2.0.0
 Revamped the entire system, with a new parser, a compiler and a lot of new features!
 - No need for new lines! Use semicolons to end a statement;

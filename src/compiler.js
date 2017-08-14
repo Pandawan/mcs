@@ -211,8 +211,13 @@ function Compiler(exp) {
     }
     // Execute blocks
     function make_execute(env, exp) {
+        // Evaluate all the values
+        var selector = evaluate(exp.selector, env);
+        var pos1 = evaluate(exp.pos[0], env);
+        var pos2 = evaluate(exp.pos[1], env);
+        var pos3 = evaluate(exp.pos[2], env);
         // Add prefix
-        prefix.push("execute " + exp.selector.value + " " + exp.pos[0].value + " " + exp.pos[1].value + " " + exp.pos[2].value + " ");
+        prefix.push("execute " + selector + " " + pos1 + " " + pos2 + " " + pos3 + " ");
         // Evaluate content
         evaluate(exp.prog, env.extend());
         // pop
@@ -233,6 +238,41 @@ function Compiler(exp) {
         }
         // If it's a basic string
         else {
+            return exp.value;
+        }
+    }
+
+    // Relatives can be evaluated
+    function make_relative(env, exp) {
+        if (exp.value && exp.value.length > 0) {
+            var final = "~";
+            for (var i = 0; i < exp.value.length; i++) {
+                final += evaluate(exp.value[i], env);
+            }
+            return final;
+        } else {
+            return "~";
+        }
+    }
+
+    // Selectors can be evaluated
+    function make_selector(env, exp) {
+        // If the selector's value is an array
+        if (Array.isArray(exp.value)) {
+            if (exp.value && exp.value.length > 0) {
+                var final = exp.prefix + "[";
+                for (var i = 0; i < exp.value.length; i++) {
+                    // Only compile ivars (already created variables/calls)
+                    if (exp.value[i].type == "ivar") {
+                        var x = evaluate(exp.value[i], env.extend());
+                        final += x;
+                    } else final += exp.value[i].value;
+                }
+                return final + "]";
+            } else {
+                return exp.prefix;
+            }
+        } else {
             return exp.value;
         }
     }
@@ -298,14 +338,14 @@ function Compiler(exp) {
     // Create a command
     function make_command(env, exp) {
         var cmd = "";
+        var lastVal = "";
         if (env.parent == null) err("Commands cannot be used in root");
         for (var i = 0; i < exp.value.length; i++) {
-            if (i > 0) {
-                // Don't want to add a space between colons
-                if ((exp.value[i + 1] && exp.value[i + 1].type != "colon") || (exp.value[i - 1] && exp.value[i - 1].type != "colon"))
-                    cmd += " ";
-            }
-            cmd += evaluate(exp.value[i], env);
+            var valueToAdd = evaluate(exp.value[i], env);
+            if (valueToAdd != ":" && lastVal != "" & lastVal != ":") cmd += " ";
+            cmd += valueToAdd;
+
+            lastVal = valueToAdd;
         }
         // Whenever a command is read, add it to the output
         var prefixToAdd = (prefix && prefix.length > 0) ? prefix.join('') : '';
@@ -416,7 +456,6 @@ function Compiler(exp) {
         switch (exp.type) {
             case "num":
             case "bool":
-            case "selector":
             case "kw":
                 return exp.value;
             case "str":
@@ -426,7 +465,9 @@ function Compiler(exp) {
             case "colon":
                 return ":";
             case "relative":
-                return exp.value;
+                return make_relative(env, exp);
+            case "selector":
+                return make_selector(env, exp);
             case "comma":
                 return ",";
             case "json":

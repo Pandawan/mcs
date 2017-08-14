@@ -13,4 +13,4 @@ say Num 1
 say Num 2
 say Num 3
 execute @a ~ ~ ~ say Hello World
-function myNamespace : callAMacro if @a[score_hello=1]
+function myNamespace:callAMacro if @a[score_hello=1]

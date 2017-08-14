@@ -5,12 +5,16 @@
 			"_type": "group",
 			"myFunction": {
 				"_type": "function",
-				"value": "# Parsed comments (get added to final function file) cannot be in root\nsay hello world\ntellraw @a {\"text\":\"this is an eval block -> a string var\"}\nsay Number is less than 4\nsay for loop\nsay Num 0\nsay Num 1\nsay Num 2\nsay Num 3\nsay foreach loop\nsay Num 0\nsay Num 1\nsay Num 2\nsay Num 3\nexecute @a ~ ~ ~ say Hello World\nfunction myNamespace : callAMacro if @a[score_hello=1]\n"
+				"value": "# Parsed comments (get added to final function file) cannot be in root\nsay hello world\ntellraw @a {\"text\":\"this is an eval block -> a string var\"}\nsay Number is less than 4\nsay for loop\nsay Num 0\nsay Num 1\nsay Num 2\nsay Num 3\nsay foreach loop\nsay Num 0\nsay Num 1\nsay Num 2\nsay Num 3\nexecute @a ~ ~ ~ say Hello World\nfunction myNamespace:callAMacro if @a[score_hello=1]\n"
 			}
 		},
 		"callAMacro": {
 			"_type": "function",
 			"value": "tellraw @a[score_hello_min=1] {\"text\":\"Hello, my name is John.\"}\nsay 5\n"
+		},
+		"changes": {
+			"_type": "function",
+			"value": "execute @a ~ ~ ~ say hello world\nsay @a[some_score=5]\nsay ~5\n"
 		}
 	}
 }

@@ -587,7 +587,11 @@ function Parser(input) {
             };
             // Loop through it to add all of the arguments
             while (!input.eof()) {
-                obj.value.push(input.next());
+                if (input.peek().type == "kw")
+                    obj.value.push(input.next());
+                else
+                    obj.value.push(parse_expression());
+
 
                 if (is_punc(';')) break;
                 else if (input.eof()) skip_punc(';');
@@ -647,7 +651,6 @@ function Parser(input) {
                 else if (tokenCount > 0 && tokenCount < 4) final.pos.push(expr);
                 else if (tokenCount == 4) final.prog = expr;
                 tokenCount++;
-                if (tokenCount == 4 && !is_punc('{')) unexpected();
             }
         }
         return final;
@@ -706,9 +709,36 @@ function Parser(input) {
             value: setting.substring(indexSeparator + 1).trim()
         };
     }
-    // Relatives are already parsed
+    // Relatives need to check for variables inside
     function parse_relative() {
-        return input.next();
+        // Parse the relative's content
+        var quickInput = TokenStream(InputStream(input.next().value.substring(1)));
+        var final = [];
+        while (!quickInput.eof()) {
+            final.push(quickInput.next());
+        }
+        return {
+            type: 'relative',
+            value: final
+        };
+    }
+    // Selectors need to check for variables inside
+    function parse_selector() {
+        var next = input.next();
+        var final = [];
+        // If the selector has arguments, parse them
+        if (next.value.indexOf("[") > -1) {
+            var valueToParse = next.value.substring(3, next.value.length - 1);
+            var quickInput = TokenStream(InputStream(valueToParse));
+            while (!quickInput.eof()) {
+                final.push(quickInput.next());
+            }
+        }
+        return {
+            type: 'selector',
+            prefix: next.value.substring(0, 2),
+            value: final
+        };
     }
     /* Parsing reg is complicated
 
@@ -812,9 +842,10 @@ function Parser(input) {
             if (input.peek().type == 'setting') return parse_setting();
             if (input.peek().type == "ivar") return parse_ivar();
             if (input.peek().type == 'relative') return parse_relative();
+            if (input.peek().type == 'selector') return parse_selector();
 
             var tok = input.next();
-            if (tok.type == 'colon' || tok.type == "selector" || tok.type == "num" || tok.type == "str")
+            if (tok.type == 'colon' || tok.type == "num" || tok.type == "str")
                 return tok;
             unexpected();
         });

@@ -1,4 +1,4 @@
-// THIS IS THE GOAL FOR ~2.0's syntax!
+// This is a quick demo/tutorial file
 
 // Declare a namespace
 @!namespace: myNamespace
@@ -101,6 +101,7 @@ macro aMacro ($parameter1, $parameter2) {
 // A function to demonstrate macros
 function callAMacro {
 
+	// You can also make variables with selectors or relative positions
 	var $selector = @a[score_hello_min=1];
 
 	// Call a macro and add its return value as a new line
@@ -112,3 +113,23 @@ function callAMacro {
 	// say 5;
 
 };
+
+// This function shows the changes from the latest version
+function changes {
+	// Changes from v2.1.0
+
+	// Execute as normal command
+	execute @a ~ ~ ~ say hello world;
+
+	var $someVal = 5;
+
+	// Selectors can evaluate their content
+	var $selector = @a[some_score=$someVal];
+
+	// Relatives can evaluate their content
+	var $rel = ~$someVal;
+
+	say $selector;
+
+	say $rel;
+}
