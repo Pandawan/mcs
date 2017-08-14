@@ -45,7 +45,7 @@ Add to your html
 
 ### Or include it manually
 
-Download [mcs.min.js](https://github.com/PandawanFr/mcs/blob/master/mcs.min.js)
+Download [mcs.min.js](https://github.com/PandawanFr/mcs/blob/master/dist/mcs.min.js)
 
 Add to your html
 
