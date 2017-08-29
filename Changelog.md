@@ -1,5 +1,5 @@
 # Changelog
-## Version 2.1.2
+## Version 2.2.0
 Added exponential operations
 - Used with ^
 
