@@ -96,7 +96,7 @@ function TokenStream(input) {
     }
 
     function is_op_char(ch) {
-        return "+-*/%=&|<>!".indexOf(ch) >= 0;
+        return "+-*/%^=&|<>!".indexOf(ch) >= 0;
     }
 
     function is_punc(ch) {
@@ -402,6 +402,7 @@ function Parser(input) {
         "*": 20,
         "/": 20,
         "%": 20,
+        "^": 30,
     };
     return parse_toplevel();
 
