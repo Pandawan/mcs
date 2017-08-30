@@ -88,6 +88,8 @@ function Compiler(exp) {
                 return num(a) / div(b);
             case "%":
                 return num(a) % div(b);
+            case "^":
+                return Math.pow(num(a),num(b));
             case "&&":
                 return a !== false && b;
             case "||":

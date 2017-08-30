@@ -100,6 +100,8 @@
                             return num(a) / div(b);
                         case "%":
                             return num(a) % div(b);
+                        case "^":
+                            return Math.pow(num(a),num(b));
                         case "&&":
                             return a !== false && b;
                         case "||":
@@ -627,7 +629,7 @@
                 }
 
                 function is_op_char(ch) {
-                    return "+-*/%=&|<>!".indexOf(ch) >= 0;
+                    return "+-*/%^=&|<>!".indexOf(ch) >= 0;
                 }
 
                 function is_punc(ch) {
@@ -933,6 +935,7 @@
                     "*": 20,
                     "/": 20,
                     "%": 20,
+                    "^": 30,
                 };
                 return parse_toplevel();
 

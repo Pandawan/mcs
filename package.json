@@ -1,6 +1,6 @@
 {
 	"name": "mcs",
-	"version": "2.1.1",
+	"version": "2.2.0",
 	"description": "A pre-processor to write Minecraft Functions more efficiently",
 	"main": "dist/mcs.min.js",
 	"scripts": {
@@ -23,7 +23,7 @@
 	},
 	"homepage": "https://github.com/PandawanFr/mcs#readme",
 	"dependencies": {
-		"chalk": "^2.0.1",
+		"chalk": "^2.1.0",
 		"pkginfo": "^0.4.0"
 	},
 	"bin": {

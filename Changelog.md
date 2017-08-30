@@ -1,4 +1,8 @@
 # Changelog
+## Version 2.2.0
+Added exponential operations
+- Used with ^
+
 ## Version 2.1.0
 Fixed some issues
 - Execute can now be used as a regular command (Fixes #3)
