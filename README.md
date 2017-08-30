@@ -100,6 +100,7 @@ $ gulp
 
 # Authors
 Made by [Pandawan](http://twitter.com/PandawanYT).  
+Thanks to [@coolsa](https://github.com/coolsa) for contributing.
 Thanks to [Andrew Mast](https://github.com/AndrewMast) and [Chris Smith](https://github.com/chris13524) for helping out and providing feedback!
 
 # License

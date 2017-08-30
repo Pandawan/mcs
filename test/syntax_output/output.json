@@ -14,7 +14,7 @@
 		},
 		"changes": {
 			"_type": "function",
-			"value": "execute @a ~ ~ ~ say hello world\nsay @a[some_score=5]\nsay ~5\n"
+			"value": "say 8\nexecute @a ~ ~ ~ say hello world\nsay @a[some_score=5]\nsay ~5\n"
 		}
 	}
 }

@@ -101,7 +101,7 @@
                         case "%":
                             return num(a) % div(b);
                         case "^":
-                            return Math.pow(num(a),num(b));
+                            return Math.pow(num(a), num(b));
                         case "&&":
                             return a !== false && b;
                         case "||":

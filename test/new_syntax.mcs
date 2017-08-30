@@ -116,6 +116,18 @@ function callAMacro {
 
 // This function shows the changes from the latest version
 function changes {
+	// Changes from v2.2.0
+
+	// New Exponent/Power operator
+	var $exponent = 3;
+	var $base = 2;
+
+	// 2 to the power of 3 is 8
+	var $result = 2 ^ 3;
+
+	// say 8
+	say $result;
+
 	// Changes from v2.1.0
 
 	// Execute as normal command
